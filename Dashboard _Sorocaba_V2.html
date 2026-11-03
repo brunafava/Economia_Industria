@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard_Sorocaba_Regressoes</title>
+<style>
+:root{
+  --bg:#f8f7fd; --card:#ffffff; --ink:#16202e; --muted:#5d6b7d; --line:#e9e6f5;
+  --blue:#7c3aed; --blue-soft:#ede9fe; --teal:#3b82f6; --amber:#c98a0b; --red:#c8442f; --red-soft:#f9e3df;
+  --green:#1f8a4c; --grid:#ece9f7; --shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e141c; --card:#161e29; --ink:#e8edf4; --muted:#9aa8ba; --line:#263242;
+    --blue:#a78bfa; --blue-soft:#2a2150; --teal:#60a5fa; --amber:#e3a932; --red:#ee7a66; --red-soft:#3a2420;
+    --green:#52c27f; --grid:#243040; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e141c; --card:#161e29; --ink:#e8edf4; --muted:#9aa8ba; --line:#263242;
+  --blue:#a78bfa; --blue-soft:#2a2150; --teal:#60a5fa; --amber:#e3a932; --red:#ee7a66; --red-soft:#3a2420;
+  --green:#52c27f; --grid:#243040; --shadow:none;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header{padding:28px 0 8px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+h1{margin:4px 0 6px;font-size:clamp(24px,4vw,34px);line-height:1.15;letter-spacing:-.01em}
+.sub{color:var(--muted);max-width:760px;margin:0}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+nav{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-top:14px}
+nav .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px}
+nav button{flex:none;border:0;background:none;color:var(--muted);padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;border-bottom:3px solid transparent}
+nav button[aria-selected="true"]{color:var(--blue);border-bottom-color:var(--blue)}
+nav button:hover{color:var(--ink)}
+main{padding:22px 0 50px}
+section[hidden]{display:none}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.two{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+.card h2{margin:0 0 2px;font-size:16px}
+.card .hint{margin:0 0 12px;color:var(--muted);font-size:13px}
+.kpi{cursor:default}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.kpi .v{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12.5px;color:var(--muted)}
+.kpi.link{cursor:pointer}.kpi.link:hover{border-color:var(--blue)}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--blue-soft);color:var(--blue);vertical-align:middle}
+.tag.warn{background:var(--red-soft);color:var(--red)}
+.controls{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:end;margin-bottom:12px}
+.controls label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600}
+.controls select,.controls input[type=text],.controls input[type=number]{font:inherit;font-size:14px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.controls input[type=range]{width:200px;accent-color:var(--blue)}
+.controls .chk{flex-direction:row;align-items:center;gap:6px;font-size:13.5px;color:var(--ink);font-weight:500}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--bg);color:var(--muted);padding:6px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--blue);color:#fff}
+svg.chart{width:100%;height:auto;display:block;overflow:visible}
+svg text{font:11.5px system-ui,sans-serif;fill:var(--muted)}
+svg .val{fill:var(--ink);font-weight:600}
+svg .gl{stroke:var(--grid);stroke-width:1}
+svg .ax{stroke:var(--muted);stroke-width:1}
+svg [data-tip]{cursor:pointer}
+svg .bar{transition:opacity .12s}
+svg:hover .bar{opacity:.55}svg .bar:hover{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+#tip{position:fixed;pointer-events:none;z-index:50;background:var(--ink);color:var(--bg);padding:7px 10px;border-radius:8px;font-size:12.5px;line-height:1.4;max-width:260px;opacity:0;transition:opacity .1s;white-space:pre-line}
+.hbar{margin:10px 0}
+.hbar .row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+.hbar .track{height:14px;background:var(--bg);border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.hbar .fill{height:100%;border-radius:7px;transition:width .3s}
+.zones{position:relative;height:16px;border-radius:8px;overflow:hidden;display:flex;margin:22px 0 6px}
+.zones span{flex:none;height:100%}
+.zmark{position:absolute;top:-6px;width:3px;height:28px;background:var(--ink);border-radius:2px}
+.zlabels{display:flex;font-size:11px;color:var(--muted)}.zlabels span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}@media(max-width:520px){.zlabels{font-size:9.5px}}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.note{font-size:12.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;margin:12px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:99px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.src{display:block;padding:10px 0;border-bottom:1px solid var(--line)}
+.src:last-child{border-bottom:0}
+.src a{color:var(--blue);font-weight:600;text-decoration:none;word-break:break-word}
+.src a:hover{text-decoration:underline}
+.src .m{font-size:12.5px;color:var(--muted)}
+.axis{border-left:4px solid var(--blue)}
+.axis h3{margin:0 0 4px;font-size:15px}
+.axis ul{margin:6px 0 0;padding-left:18px;font-size:13.5px}
+.axis li.ok::marker{color:var(--green)}.axis li.pend::marker{color:var(--amber)}
+.axis .st{font-size:12px;color:var(--muted)}
+footer{border-top:1px solid var(--line);padding:18px 0 40px;color:var(--muted);font-size:12.5px}
+.big{font-size:34px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+@media (max-width:520px){.kpi .v{font-size:24px}.controls input[type=range]{width:150px}}
+
+body{background:var(--bg)}
+.wrap{max-width:1180px}
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .bar{display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px}
+.brand{display:flex;align-items:center;gap:10px;flex:none}
+.brand b{display:block;font-size:15px;line-height:1.2}.brand small{display:block;font-size:11px;letter-spacing:.1em;color:var(--blue);font-weight:600}
+.logo{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;color:#fff;background:linear-gradient(135deg,#8b5cf6,#6d28d9);box-shadow:0 6px 16px rgba(124,58,237,.35)}
+header.top nav{position:static;border:0;margin:0;background:none;display:flex;gap:2px;margin-left:auto;overflow-x:auto}
+header.top nav button{display:flex;align-items:center;gap:7px;border:0;border-radius:10px;padding:9px 12px;font-weight:500;font-size:14.5px;white-space:nowrap;background:none;color:var(--muted)}
+header.top nav button[aria-selected="true"]{color:var(--blue);background:var(--blue-soft);border:0}
+header.top nav button:hover{color:var(--blue)}
+.theme{flex:none;width:38px;height:38px;padding:0;border-radius:10px}
+@media (max-width:900px){header.top .bar{flex-wrap:wrap}header.top nav{order:3;width:100%;margin-left:0}.brand{flex:1}}
+@media (max-width:640px){header.top nav button span{display:none}header.top nav button{padding:10px 14px}}
+.hero{position:relative;padding:34px 0 26px;margin:-22px -16px 22px;padding-left:16px;padding-right:16px;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;
+  -webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.hero h1{font-size:clamp(34px,6vw,60px);line-height:1.05;letter-spacing:-.03em;font-weight:800;margin:0 0 16px;max-width:820px}
+.grad{background:linear-gradient(90deg,#6d28d9,#7c3aed 50%,#6366f1);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(16px,2vw,20px);color:var(--muted);max-width:760px;margin:0}
+.sechead{border-left:3px solid var(--blue);padding:2px 0 2px 18px;margin:4px 0 20px}
+.sechead .eb{display:flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.12em;font-weight:700;color:var(--blue)}
+.sechead h2{font-size:clamp(26px,4vw,36px);letter-spacing:-.02em;margin:4px 0 6px}
+.sechead p{margin:0;color:var(--muted);max-width:720px}
+.card{border-radius:16px;box-shadow:0 1px 2px rgba(80,60,160,.05),0 8px 24px rgba(80,60,160,.05);padding:20px 22px}
+.card h2{font-size:17px}
+.kpi{padding:20px 22px}
+.kpi .ic{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:var(--blue-soft);color:var(--blue);margin-bottom:14px}
+.kpi .v{font-size:30px;font-weight:700;margin:0 0 2px}
+.kpi .l{font-size:15px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:500;order:2}
+.kpi .s{font-size:12.5px}
+.kpi.link:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 10px 28px rgba(124,58,237,.14)}
+.kpi{transition:transform .15s,box-shadow .15s,border-color .15s}
+.seg{background:var(--blue-soft);border:1px solid var(--line);border-radius:12px;padding:4px;gap:2px}
+.seg button{background:none;border-radius:9px;color:var(--muted);padding:7px 14px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--blue);box-shadow:0 1px 4px rgba(80,60,160,.18)}
+.chip{border-radius:10px}.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue)}
+.tag{background:var(--blue-soft);color:var(--blue)}
+.hbar .track{height:12px;border-radius:99px;background:var(--blue-soft);border:0}
+.hbar .fill{border-radius:99px}
+.controls select,.controls input[type=text],.controls input[type=number]{border-radius:10px;background:var(--card)}
+.period{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--blue-soft);border-radius:12px;padding:12px 16px;margin-bottom:14px}
+footer{border-top:1px solid var(--line)}
+main{padding-top:30px}
+#kpiGeral{grid-template-columns:repeat(3,1fr)}
+@media (max-width:760px){#kpiGeral{grid-template-columns:repeat(2,1fr)}}
+.theme{font-size:18px;line-height:1}
+.hero{margin-top:-30px}
+</style>
+</head>
+<body>
+<div id="tip" role="tooltip"></div>
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand"><span class="logo"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5l4 3V9l4 3V6l4 4v6"/></svg></span>
+      <span><b>Observatório da Economia</b><small>SOROCABA · SP</small></span></div>
+    <nav role="tablist" id="tabs" aria-label="Seções">
+      <button role="tab" data-tab="geral" aria-selected="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span>Visão geral</span></button>
+      <button role="tab" data-tab="emprego" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8"/></svg><span>Força de Trabalho</span></button>
+      <button role="tab" data-tab="rais" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8"/></svg><span>Trabalho (RAIS)</span></button>
+      <button role="tab" data-tab="financas" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span>PIB e Finanças</span></button>
+      <button role="tab" data-tab="economia" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg><span>Estrutura econômica</span></button>
+      <button role="tab" data-tab="ind40" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 9h6v6H9zM9 1v4M15 1v4M9 19v4M15 19v4M1 9h4M1 15h4M19 9h4M19 15h4"/></svg><span>Indústria 4.0</span></button>
+      <button role="tab" data-tab="territorio" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Território</span></button>
+      <button role="tab" data-tab="eixos" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg><span>Eixos</span></button>
+      <button role="tab" data-tab="projecoes" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span>Projeções 2030</span></button>
+      <button role="tab" data-tab="plano" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span>Plano de Ação</span></button>
+      <button role="tab" data-tab="fontes" aria-selected="false"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg><span>Fontes</span></button>
+    </nav>
+    <button class="theme" id="themeBtn" type="button" aria-label="Alternar tema">◐</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- VISÃO GERAL -->
+<section id="geral">
+  <div class="hero">
+    <h1>Observatório da Economia de <span class="grad">Sorocaba</span></h1>
+    <p class="lead">Diagnóstico do território, das finanças públicas, da força de trabalho e das fontes de dados do município. Projeto de Economia Aplicada a Negócios Disruptivos, 2º semestre de 2026.</p>
+  </div>
+  <div class="grid kpis" id="kpiGeral"></div>
+  <h2 style="margin:24px 0 10px;font-size:18px">Indicadores-chave do observatório <span class="tag">novo</span></h2>
+  <div class="grid kpis" id="kpiMetricas"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Sorocaba no ranking do PIB</h2>
+      <p class="hint">PIB de quase R$ 59 bilhões: 10º do Estado de SP e 24º do Brasil (Jornal Z Norte, 14/08/2026).</p>
+      <div id="rankBars"></div>
+      <p class="note">As posições relativas foram calculadas com o total de municípios (645 em SP; 5.570 no Brasil). Esses totais são conhecimento geral, não vêm dos arquivos.</p>
+    </div>
+    <div class="card">
+      <h2>O que este painel cobre</h2>
+      <p class="hint">Dados disponíveis nos arquivos enviados</p>
+      <table>
+        <tr><th>Bloco</th><th>Dados</th><th>Ano ref.</th></tr>
+        <tr><td>Território e população</td><td>Área, população, densidade, IDHM, escolarização</td><td>2010–2026</td></tr>
+        <tr><td>Finanças públicas</td><td>Receitas e despesas, PIB per capita</td><td>2023–2025</td></tr>
+        <tr><td>Emprego</td><td>Saldo mensal do Novo CAGED (<b>Brasil</b>)</td><td>ago/25–ago/26</td></tr>
+        <tr><td>PIB e VAB</td><td>PIB 2002–2023; VAB da indústria 2006–2021</td><td>2002–2023</td></tr>
+        <tr><td>Trabalho (RAIS)</td><td>Gênero, escolaridade, raça/cor, deficiência e porte (seções B e C)</td><td>2016–2025</td></tr>
+        <tr><td>Indicadores-chave</td><td>Crescimento do PIB, peso do VAB industrial, ensino médio+, PcD e microempresas</td><td>2002–2025</td></tr>
+        <tr><td>Indústria 4.0</td><td>Produtividade por segmento CNAE (IBGE, <b>Brasil</b>) e maturidade digital das MPEs (ABDI/FGV, <b>Brasil</b>)</td><td>2007–2023</td></tr>
+        <tr><td>Plano de Ação</td><td>Relatório sintético e ações para o setor produtivo e o setor público</td><td>2026–2030</td></tr>
+        <tr><td>Fontes</td><td>Mais de 80 links, filtráveis por tema</td><td>–</td></tr>
+      </table>
+      <p class="note">A série do PIB (2002–2023) e o VAB da indústria (2006–2021) vêm da base limpa e estão na aba Estrutura econômica. O VAB dos demais setores não consta nessa base.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TERRITÓRIO -->
+<section id="territorio" hidden>
+  <div class="sechead"><div class="eb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg> DIAGNÓSTICO TERRITORIAL</div><h2>Território e população</h2><p>Área, densidade, crescimento populacional, escolarização, IDHM e mortalidade infantil. Fonte: IBGE Cidades.</p></div>
+  <div class="grid kpis" id="kpiTerr"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Projeção da população</h2>
+      <p class="hint">Extrapolação simples a partir de dois dados oficiais: Censo 2022 e estimativa 2026. Não é projeção demográfica oficial.</p>
+      <div class="controls">
+        <label>Crescimento anual do cenário: <b id="rateOut"></b>
+          <input type="range" id="rate" min="0" max="3" step="0.1" value="1.4"></label>
+        <label>Ano-alvo: <b id="yearOut"></b>
+          <input type="range" id="year" min="2030" max="2045" step="1" value="2035"></label>
+      </div>
+      <div id="projChart"></div>
+      <div class="legend" id="projLegend"></div>
+      <p id="projText" style="margin:10px 0 0"></p>
+    </div>
+    <div class="card">
+      <h2>Indicadores sociais</h2>
+      <p class="hint">Escolarização, IDHM e mortalidade infantil.</p>
+      <div class="hbar"><div class="row"><span>Escolarização (6 a 14 anos) · 2022</span><b>98,66%</b></div>
+        <div class="track"><div class="fill" style="width:98.66%;background:var(--teal)"></div></div></div>
+      <div style="margin-top:20px"><div class="row" style="display:flex;justify-content:space-between;font-size:13px"><span>IDHM · 2010</span><b>0,798</b></div>
+        <div class="zones" id="idhmZones"></div>
+        <div class="zlabels" id="idhmLabels"></div>
+        <p class="note">O IDHM de Sorocaba está na faixa "Alto" e fica a 0,002 do "Muito alto" (≥ 0,800). Dado de 2010, o mais recente disponível nos arquivos.</p>
+      </div>
+      <div style="margin-top:18px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span class="big">13,19</span><span class="m" style="color:var(--muted)">óbitos por mil nascidos vivos · mortalidade infantil, 2025</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINANÇAS -->
+<section id="financas" hidden>
+  <div class="sechead"><div class="eb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> ECONOMIA E FINANÇAS PÚBLICAS</div><h2>PIB e finanças do município</h2><p>PIB per capita, relação entre receitas e despesas de 2025 e checagem do PIB total.</p></div>
+  <div class="grid kpis" id="kpiFin"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Receitas × despesas (2025)</h2>
+      <p class="hint">Total de receitas brutas realizadas e de despesas brutas empenhadas.</p>
+      <div id="finBars"></div>
+      <div class="controls" style="margin-top:14px">
+        <label>Valor por habitante, com base em:
+          <span class="seg" id="popBase">
+            <button type="button" data-p="2022" aria-pressed="false">Censo 2022</button>
+            <button type="button" data-p="2026" aria-pressed="true">Estimativa 2026</button>
+          </span></label>
+      </div>
+      <table id="finTable"></table>
+      <p class="note">Os valores por habitante são aproximados: receitas e despesas são de 2025 e a população é de 2022 ou 2026.</p>
+    </div>
+    <div class="card">
+      <h2>PIB implícito: checagem com o PIB per capita</h2>
+      <p class="hint">PIB per capita (2023) × população = PIB estimado. Altere a população para testar.</p>
+      <div class="controls">
+        <label>População usada
+          <input type="number" id="pibPop" value="723682" step="1000" min="100000"></label>
+        <div class="seg" id="pibPreset">
+          <button type="button" data-v="723682" aria-pressed="true">Censo 2022</button>
+          <button type="button" data-v="766390" aria-pressed="false">Est. 2026</button>
+        </div>
+      </div>
+      <div class="big" id="pibImp"></div>
+      <p id="pibText" style="color:var(--muted);margin:4px 0 14px"></p>
+      <div id="pibBars"></div>
+      <p class="note">Com a população do Censo 2022, o resultado fica muito perto dos "quase R$ 59 bilhões" da reportagem. Isso confere que o PIB per capita do IBGE e o PIB total citado são coerentes entre si.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ESTRUTURA ECONÔMICA -->
+<section id="economia" hidden>
+  <div class="sechead"><div class="eb">EIXO 1 · ESTRUTURA EMPRESARIAL E PIB</div><h2>Estrutura econômica</h2><p>Série histórica do PIB e do valor adicionado bruto (VAB) da indústria. Fonte: IBGE, PIB dos Municípios (base limpa).</p></div>
+  <div class="grid kpis" id="kpiEco"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h2>PIB de Sorocaba</h2><p class="hint">Valores correntes (sem correção pela inflação). Anos sem valor válido na planilha ficam de fora.</p><div id="pibChart"></div><p class="note" id="pibGap"></p></div>
+    <div class="card"><h2>VAB da indústria</h2><p class="hint">Valor adicionado bruto da indústria, em R$ correntes.</p><div id="vabChart"></div><p class="note" id="vabGap"></p></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>Crescimento anual do PIB <span class="tag">novo · cálculo derivado</span></h2><p class="hint">(PIB do ano − PIB do ano anterior) ÷ PIB do ano anterior × 100. Valores correntes (nominal, sem IPCA). Só entram anos com o ano anterior disponível.</p><div id="pibGrowth"></div><div style="overflow:auto;max-height:260px;margin-top:10px"><table id="pibGrowthTab"></table></div></div>
+  <div class="card" style="margin-top:14px"><h2>Peso da indústria no PIB <span class="tag">cálculo derivado</span></h2><p class="hint">VAB da indústria (R$ mil × 1.000) ÷ PIB (R$) × 100, nos anos em que os dois existem (2006–2021). O PIB é a soma dos VABs dos setores mais impostos líquidos de subsídios sobre produtos, então o VAB industrial é uma parte do PIB.</p><div id="vabShare"></div></div>
+</section>
+
+<!-- EMPREGO -->
+<section id="emprego" hidden>
+  <div class="sechead"><div class="eb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8"/></svg> DIAGNÓSTICO SOCIAL</div><h2>Força de trabalho</h2><p>Saldo mensal de empregos formais (Novo CAGED) e o resultado recente de Sorocaba.</p></div>
+  <div class="grid kpis" id="kpiEmp"></div>
+  <div class="card" style="margin-top:14px">
+    <h2>Saldo mensal de empregos formais — Brasil <span class="tag">Novo CAGED</span></h2>
+    <p class="hint">Dados com ajustes, de agosto de 2025 a agosto de 2026. Fonte: Ministério do Trabalho e Emprego.</p>
+    <div class="controls">
+      <label>De <select id="mFrom"></select></label>
+      <label>Até <select id="mTo"></select></label>
+      <label>Visualização
+        <span class="seg" id="empMode">
+          <button type="button" data-m="mensal" aria-pressed="true">Mensal</button>
+          <button type="button" data-m="acum" aria-pressed="false">Acumulado</button>
+        </span></label>
+      <label class="chk"><input type="checkbox" id="noDec"> Excluir dez/2025 (saldo de –635 mil)</label>
+    </div>
+    <div id="empChart"></div>
+    <div class="legend"><span><i style="background:var(--blue)"></i>Saldo positivo</span><span><i style="background:var(--red)"></i>Saldo negativo</span></div>
+  </div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card">
+      <h2>Dados do período</h2>
+      <table id="empTable"></table>
+    </div>
+    <div class="card">
+      <h2>E Sorocaba?</h2>
+      <p class="hint">Notícia do Jornal Cruzeiro do Sul (set/2026)</p>
+      <div class="big pos">+1.414</div>
+      <p style="margin:2px 0 12px">empregos criados em agosto de 2026, depois de dois meses de saldo negativo.</p>
+      <p id="sorShare" style="margin:0"></p>
+      <p class="note">Gênero, escolaridade, raça/cor e deficiência de Sorocaba (RAIS 2016–2025) estão na aba Trabalho (RAIS). O saldo mensal por setor e os salários ainda não foram localizados: a remuneração da extração veio corrompida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RAIS -->
+<section id="rais" hidden>
+  <div class="sechead"><div class="eb">EIXO 2 · CAPITAL HUMANO</div><h2>Trabalho formal em Sorocaba (RAIS)</h2><p>Vínculos por gênero, escolaridade, raça/cor e deficiência, e estabelecimentos por porte. Seções CNAE B e C.</p></div>
+  <div class="card">
+    <div class="controls">
+      <label>Seção CNAE <select id="rSec"></select></label>
+      <label>Ano <select id="rYear"></select></label>
+    </div>
+    <div class="grid kpis" id="kpiRais"></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>Indicadores-chave ao longo dos anos <span class="tag">novo · seção selecionada</span></h2><p class="hint">Médio completo ou superior = (médio completo + superior incompleto + superior completo + mestrado + doutorado) ÷ total de vínculos. PcD = vínculos com algum tipo de deficiência (inclui reabilitados) ÷ total de vínculos. Microempresas = estabelecimentos ME ÷ total de estabelecimentos.</p>
+    <div class="grid two"><div><b>Médio completo ou superior (%)</b><div id="mxMed"></div></div><div><b>Pessoas com deficiência (%)</b><div id="mxPcd"></div></div><div><b>Microempresas (% dos estabelecimentos)</b><div id="mxMe"></div></div></div></div>
+  <div class="card" style="margin-top:14px"><h2>Participação feminina ao longo dos anos</h2><p class="hint">Mulheres ÷ (homens + mulheres), por seção CNAE.</p><div id="femChart"></div><div class="legend" id="femLegend"></div><p class="note">A Seção B tem poucos vínculos (algumas dezenas), então o percentual oscila bastante de um ano para o outro.</p></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h2>Escolaridade</h2><p class="hint">Vínculos por nível, somando os sexos.</p><div id="rEsc"></div></div>
+    <div class="card"><h2>Raça/cor</h2><p class="hint">Categorias como na fonte.</p><div id="rRaca"></div></div>
+    <div class="card"><h2>Deficiência</h2><p class="hint">Tipo de deficiência, categorias como na fonte.</p><div id="rDef"></div></div>
+    <div class="card"><h2>Porte dos estabelecimentos</h2><p class="hint">Número de estabelecimentos (não de pessoas).</p><div id="rPorte"></div><p class="note">ME (microempresa) não equivale automaticamente a MEI.</p></div>
+  </div>
+  <p class="note">Remuneração média ficou de fora: os valores da extração vieram corrompidos (separador decimal) e a base limpa os mantém só para auditoria.</p>
+</section>
+
+<!-- INDÚSTRIA 4.0 -->
+<section id="ind40" hidden>
+  <div class="sechead"><div class="eb">EIXO 3 · INDÚSTRIA 4.0 E PRODUTIVIDADE</div><h2>Segmentos, produtividade e maturidade digital</h2><p>Duas bases nacionais: IBGE PIA (tabela 1853, por divisão CNAE) e Mapa de Digitalização das MPEs (ABDI/FGV).</p></div>
+  <div class="card"><h2>Segmentos industriais (CNAE) <span class="tag warn">Brasil, não Sorocaba</span></h2><p class="hint">Produtividade = valor bruto da produção (R$ mil × 1.000) ÷ pessoal ocupado em 31/12. Seis divisões selecionadas da indústria de transformação.</p>
+    <div class="controls"><label>Ano <select id="sgYear"></select></label><label>Indicador <span class="seg" id="sgMet"><button type="button" data-m="prod" aria-pressed="true">Produtividade</button><button type="button" data-m="po" aria-pressed="false">Pessoal ocupado</button><button type="button" data-m="vbp" aria-pressed="false">VBP</button></span></label></div>
+    <div id="sgBars"></div><div style="overflow-x:auto;margin-top:10px"><table id="sgTab"></table></div>
+    <h3 style="margin:18px 0 4px;font-size:15px">Produtividade por operário, 2007–2023 (R$)</h3><div id="sgLine"></div><div class="legend" id="sgLeg"></div>
+    <p class="note">As séries abrangem o país todo. O recorte de Sorocaba por CNAE ainda precisa ser buscado (RAIS por subclasse ou Portal Salário). O arquivo CNAE.xlsx traz a mesma tabela 1853 (2013–2019) e não foi somado, para não duplicar.</p></div>
+  <div class="card" style="margin-top:14px"><h2>Maturidade digital das MPEs <span class="tag warn">Brasil · MPEs, não Sorocaba</span></h2><p class="hint">Mapa de Digitalização ABDI/FGV: 25 boas práticas digitais, tecnologias habilitadoras, aprendizagem e barreiras.</p>
+    <div class="grid kpis" id="abKpi"></div>
+    <div class="grid two" style="margin-top:14px"><div><h3 style="margin:0;font-size:15px">Boas práticas por objetivo</h3><p class="hint">Média simples de “Implementado” das práticas do objetivo.</p><div id="abObj"></div></div>
+    <div><h3 style="margin:0;font-size:15px">Tecnologias habilitadoras</h3><p class="hint">% das MPEs com a tecnologia implementada.</p><div id="abTec"></div></div>
+    <div><h3 style="margin:0;font-size:15px">Formatos de aprendizagem</h3><p class="hint">% que usou e gostou.</p><div id="abFmt"></div></div>
+    <div><h3 style="margin:0;font-size:15px">Principais dificuldades</h3><p class="hint">% das MPEs.</p><div id="abDif"></div></div></div>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">As 25 boas práticas, da mais para a menos adotada</summary><div id="abBP"></div></details>
+    <p class="note">Amostra nacional de micro e pequenas empresas, de todos os setores. Serve de referência, mas não mede a maturidade das plantas industriais de Sorocaba.</p></div>
+</section>
+
+<!-- EIXOS -->
+<section id="eixos" hidden>
+  <div class="sechead"><div class="eb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg> ESCOPO DO PROJETO</div><h2>Eixos do projeto</h2><p>O que já tem dado neste painel e o que ainda precisa ser buscado.</p></div>
+  <p class="sub" style="margin-bottom:14px">Itens em verde já têm dado neste painel; os em âmbar ainda precisam ser buscados.</p>
+  <div class="grid two" id="axesGrid"></div>
+</section>
+
+<!-- FONTES -->
+<section id="fontes" hidden>
+  <div class="sechead"><div class="eb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg> BASES DE DADOS</div><h2>Mapa de fontes</h2><p>Links oficiais organizados por tema, com busca.</p></div>
+  <div class="card">
+    <h2>Mapa de fontes de dados</h2>
+    <p class="hint">Links do documento do projeto e da lista de referências do Prof. Flaviano Lima (v.1, 08/08/2026).</p>
+    <div class="controls">
+      <label style="flex:1;min-width:220px">Buscar
+        <input type="text" id="srcQ" placeholder="Ex.: CAGED, PIB, IBGE, CNAE…"></label>
+      <span id="srcCount" style="font-size:13px;color:var(--muted)"></span>
+    </div>
+    <div class="chips" id="srcChips"></div>
+    <div id="srcList"></div>
+  </div>
+</section>
+
+<section id="projecoes" hidden>
+  <div class="sechead"><div class="eb">EIXO 3 · PROJEÇÕES</div><h2>Métricas e regressões até 2030</h2><p>Tendências ajustadas por mínimos quadrados (linear e exponencial) para PIB, VAB da indústria e vínculos formais da RAIS, extrapoladas até 2030. Valores correntes, sem correção pela inflação.</p></div>
+  <div class="card"><h2>Resumo das métricas <span class="tag">cálculo derivado</span></h2><p class="hint">Crescimento médio sobre toda a série; R² e valores de 2030 vêm dos ajustes (PIB desde 2010; demais séries, histórico completo).</p><div style="overflow-x:auto"><table id="pjMet"></table></div></div>
+  <div class="card" style="margin-top:14px">
+    <h2>Regressão e projeção</h2><p class="hint">Escolha a série, o modelo e o início da janela de ajuste. A faixa tracejada é o intervalo de previsão de 95%.</p>
+    <div class="controls">
+      <label>Série <select id="pjSerie"></select></label>
+      <label>Modelo <span class="seg" id="pjMod"><button type="button" data-m="lin" aria-pressed="false">Linear</button><button type="button" data-m="exp" aria-pressed="true">Exponencial</button></span></label>
+      <label>Ajustar a partir de <select id="pjIni"></select></label>
+    </div>
+    <div class="grid kpis" id="pjKpi"></div>
+    <div id="pjChart" style="margin-top:14px"></div>
+    <div class="legend" id="pjLeg"></div>
+    <div style="overflow-x:auto;margin-top:12px"><table id="pjTab"></table></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h2>VAB da indústria por vínculo da Seção C <span class="tag warn">aproximação</span></h2><p class="hint">VAB da indústria ÷ vínculos formais da indústria de transformação, nos anos em que os dois existem.</p><div style="overflow-x:auto"><table id="pjProd"></table></div><p class="note">O VAB da indústria abrange mais atividades do que a Seção C, então o valor é só um indicador de ordem de grandeza.</p></div>
+  <div class="card" style="margin-top:14px"><h2>Como ler</h2>
+    <p class="note">Regressão em série curta é extrapolação de tendência, não previsão. Os intervalos supõem erros independentes, o que subestima a incerteza em séries temporais. Os modelos divergem bastante em 2030 (compare as duas colunas do resumo). O PIB não tem valor válido de 2024 a 2026 e o VAB termina em 2021, então a projeção do VAB parte de nove anos atrás. Choques como 2020 e o salto de 2021–2022 pesam muito em janelas curtas, e a participação feminina é limitada a 0–100%, por isso o padrão é o modelo linear.</p></div>
+</section>
+
+<section id="plano" hidden>
+  <div class="sechead"><div class="eb">EIXO 4 · PLANO DE AÇÃO</div><h2>Plano de Ação 2026–2030</h2><p>Relatório sintético para o setor produtivo e o setor público, construído com os dados deste painel.</p></div>
+  <div class="grid kpis" id="kpiPlano"></div>
+  <div class="card" style="margin-top:14px"><h2>Relatório sintético <span class="tag">leitura dos dados</span></h2><p class="lead" id="planoMsg" style="font-size:16px"></p><ul id="planoLeitura" style="margin:10px 0 0;padding-left:18px;font-size:14px;line-height:1.55"></ul></div>
+  <div class="card axis" style="margin-top:14px"><h3>Setor produtivo · indústria, MPEs e entidades de classe</h3><div style="overflow-x:auto"><table id="planoProd"></table></div></div>
+  <div class="card axis" style="margin-top:14px;border-left-color:var(--teal)"><h3>Setor público · prefeitura e demais órgãos</h3><div style="overflow-x:auto"><table id="planoPub"></table></div></div>
+  <div class="card axis" style="margin-top:14px;border-left-color:var(--amber)"><h3>Ações conjuntas · governança e dados</h3><div style="overflow-x:auto"><table id="planoConj"></table></div></div>
+  <div class="card" style="margin-top:14px"><h2>Como ler</h2><p class="note">As ações são recomendações a validar com os stakeholders; as metas numéricas devem ser pactuadas, e o painel fornece as linhas de base. Valores monetários são correntes (sem correção pelo IPCA). Produtividade por segmento e maturidade digital das MPEs são dados do Brasil, não de Sorocaba. O PIB não tem valor válido de 2024 a 2026, o VAB termina em 2021 e as projeções são extrapolação de tendência, não previsão.</p></div>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+  <b>Notas metodológicas.</b> Os indicadores de Sorocaba vêm do painel IBGE Cidades (anos de referência indicados em cada cartão). O saldo do CAGED é nacional, do slide do Ministério do Trabalho e Emprego. Receitas e despesas de 2025 foram transcritas do print do documento. PIB, VAB e RAIS vêm da planilha de dados limpos (zeros tratados como ausentes; VAB convertido de R$ mil para R$). Os dados de segmentos CNAE (IBGE PIA, tabela 1853) e de maturidade digital (ABDI/FGV) são nacionais, não de Sorocaba. Novas métricas: crescimento anual do PIB = (PIB do ano − PIB do ano anterior) ÷ PIB do ano anterior × 100; peso do VAB industrial = VAB (R$ mil) × 1.000 ÷ PIB × 100; escolaridade = vínculos com médio completo ou mais ÷ total de vínculos; PcD = vínculos com deficiência (inclui reabilitados) ÷ total; microempresas = estabelecimentos ME ÷ total de estabelecimentos. Cálculos derivados (crescimento anual, valores por habitante, PIB implícito, participações) são aproximações feitas aqui e estão sinalizados no texto.
+</div></footer>
+
+<script>
+(function(){
+"use strict";
+/* ================== DADOS ================== */
+const D = {
+  area:449.872, pop2022:723682, dens:1608.64, pop2026:766390,
+  escol:98.66, idhm:0.798, mortInf:13.19,
+  receitas:5453862303.28, despesas:5524556567.45, pibPC:81273.66,
+  caged:[
+    ["Ago/25","Agosto/2025",154683],["Set/25","Setembro/2025",214688],["Out/25","Outubro/2025",92597],
+    ["Nov/25","Novembro/2025",81468],["Dez/25","Dezembro/2025",-635078],["Jan/26","Janeiro/2026",117787],
+    ["Fev/26","Fevereiro/2026",268156],["Mar/26","Março/2026",228133],["Abr/26","Abril/2026",79608],
+    ["Mai/26","Maio/2026",81648],["Jun/26","Junho/2026",136959],["Jul/26","Julho/2026",55915],["Ago/26","Agosto/2026",165827]
+  ],
+  sorAgo26:1414,
+  /* Base limpa (sorocaba_dados_limpos.xlsx): PIB e VAB em R$ correntes; RAIS por seção CNAE B e C */
+  pib:[[2002, 6594372000.0], [2003, 7610528000.0], [2004, 9168925000.0], [2005, 10785507000.0], [2006, 12236532000.0], [2007, 14569191000.0], [2008, 16889727000.0], [2009, 16673231000.0], [2010, 19721441000.0], [2011, 22985028000.0], [2012, 25969689000.0], [2013, 29354936000.0], [2014, 29580569000.0], [2015, 30783531000.0], [2016, 30530267000.0], [2017, 32115160000.0], [2018, 35008761000.0], [2019, 37272884000.0], [2020, 36624252000.0], [2021, 44533398000.0], [2022, 54465436000.0], [2023, 58816286000.0]],
+  vab:[[2006, 3849795000.0], [2007, 4771704000.0], [2008, 5423120000.0], [2009, 5427558000.0], [2010, 6222185000.0], [2011, 7099699000.0], [2012, 7466031000.0], [2013, 7739972000.0], [2014, 7963851000.0], [2015, 8169971000.0], [2016, 7674612000.0], [2017, 8228798000.0], [2018, 8895372000.0], [2019, 8869964000.0], [2020, 8600291000.0], [2021, 11416524000.0]],
+  rais:{"anos":[2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"nomes":{"B":"Indústria Extrativas","C":"Indústria De Transformação"},"d":{"B":{"2016":{"g":[18,56],"e":{"Fundamental completo (5 a 8 serie)":8,"Analfabeto":1,"Ate 5 serie incompleta":2,"Fundamental completo":11,"Medio completo":32,"Medio incompleto":3,"Superior completo":15,"Superior incompleto":2},"r":{"Branca":64,"Não identificado":5,"Parda":4,"Preta":1},"d":{"Fisica":1,"Nao Defic":73},"p":{"Empresa de Pequeno Porte (EPP)":1,"Microempresa (ME)":24}},"2017":{"g":[2,45],"e":{"Fundamental completo (5 a 8 serie)":7,"Analfabeto":1,"Ate 5 serie incompleta":2,"Fundamental completo":9,"Medio completo":16,"Medio incompleto":3,"Superior completo":9},"r":{"Branca":38,"Não identificado":6,"Parda":2,"Preta":1},"d":{"Fisica":1,"Nao Defic":46},"p":{"Empresa de Pequeno Porte (EPP)":1,"Microempresa (ME)":13}},"2018":{"g":[31,96],"e":{"Fundamental completo (5 a 8 serie)":11,"Analfabeto":1,"Ate 5 serie incompleta":3,"Fundamental completo":9,"Medio completo":50,"Medio incompleto":6,"Mestrado completo":1,"Superior completo":39,"Superior incompleto":7},"r":{"Amarela":1,"Branca":79,"Não identificado":32,"Parda":10,"Preta":5},"d":{"Nao Defic":127},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":12}},"2019":{"g":[19,98],"e":{"Fundamental completo (5 a 8 serie)":8,"6 ao 9 ano incompleto":1,"Analfabeto":1,"Ate 5 serie incompleta":6,"Fundamental completo":10,"Medio completo":58,"Medio incompleto":5,"Mestrado completo":1,"Superior completo":23,"Superior incompleto":4},"r":{"Branca":74,"Não identificado":28,"Parda":12,"Preta":3},"d":{"Nao Defic":117},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":8}},"2020":{"g":[12,105],"e":{"Fundamental completo (5 a 8 serie)":9,"Analfabeto":1,"Ate 5 serie incompleta":6,"Fundamental completo":10,"Medio completo":53,"Medio incompleto":10,"Superior completo":24,"Superior incompleto":4},"r":{"Branca":71,"Não identificado":30,"Parda":13,"Preta":3},"d":{"Nao Defic":117},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":11}},"2021":{"g":[15,108],"e":{"Fundamental completo (5 a 8 serie)":7,"Analfabeto":1,"Ate 5 serie incompleta":6,"Fundamental completo":10,"Medio completo":60,"Medio incompleto":9,"Superior completo":28,"Superior incompleto":2},"r":{"Branca":73,"Não identificado":34,"Parda":13,"Preta":3},"d":{"Nao Defic":123},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":7}},"2022":{"g":[17,114],"e":{"Fundamental completo (5 a 8 serie)":7,"Analfabeto":1,"Ate 5 serie incompleta":5,"Fundamental completo":9,"Medio completo":69,"Medio incompleto":7,"Superior completo":30,"Superior incompleto":3},"r":{"Amarela":1,"Branca":77,"Não identificado":27,"Parda":19,"Preta":7},"d":{"Nao Defic":131},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":6}},"2023":{"g":[16,126],"e":{"Fundamental completo (5 a 8 serie)":8,"Analfabeto":1,"Ate 5 serie incompleta":4,"Fundamental completo":11,"Medio completo":79,"Medio incompleto":7,"Mestrado completo":2,"Superior completo":27,"Superior incompleto":3},"r":{"Amarela":1,"Branca":88,"Não identificado":17,"Parda":30,"Preta":6},"d":{"Nao Defic":142},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":10}},"2024":{"g":[29,129],"e":{"Fundamental completo (5 a 8 serie)":7,"6 ao 9 ano incompleto":2,"Analfabeto":1,"Ate 5 serie incompleta":3,"Fundamental completo":13,"Medio completo":82,"Medio incompleto":7,"Mestrado completo":2,"Superior completo":39,"Superior incompleto":2},"r":{"Branca":97,"Não identificado":8,"Parda":45,"Preta":8},"d":{"Nao Defic":158},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":12}},"2025":{"g":[28,130],"e":{"Fundamental completo (5 a 8 serie)":6,"6 ao 9 ano incompleto":5,"Analfabeto":1,"Ate 5 serie incompleta":3,"Fundamental completo":13,"Medio completo":90,"Medio incompleto":8,"Mestrado completo":2,"Superior completo":28,"Superior incompleto":2},"r":{"Branca":87,"Não identificado":7,"Parda":57,"Preta":7},"d":{"Nao Defic":156,"Visual":2},"p":{"Empresa de Pequeno Porte (EPP)":2,"Microempresa (ME)":10}}},"C":{"2016":{"g":[18011,51361],"e":{"Fundamental completo (5 a 8 serie)":578,"6 ao 9 ano incompleto":1373,"Analfabeto":42,"Ate 5 serie incompleta":341,"Doutorado completo":49,"Fundamental completo":4292,"Medio completo":45542,"Medio incompleto":3052,"Mestrado completo":198,"Superior completo":11259,"Superior incompleto":2646},"r":{"Amarela":506,"Branca":52665,"Indigena":78,"Não identificado":4407,"Parda":8839,"Preta":2877},"d":{"Auditiva":420,"Fisica":581,"Mental":78,"Multipla":10,"Nao Defic":67929,"Reabilitado":160,"Visual":194},"p":{"Empresa de Pequeno Porte (EPP)":221,"Grande Empresa":13,"Microempresa (ME)":1898,"Média Empresa":74}},"2017":{"g":[16296,45859],"e":{"Fundamental completo (5 a 8 serie)":466,"6 ao 9 ano incompleto":1216,"Analfabeto":34,"Ate 5 serie incompleta":345,"Doutorado completo":49,"Fundamental completo":3534,"Medio completo":38992,"Medio incompleto":2399,"Mestrado completo":205,"Superior completo":12559,"Superior incompleto":2356},"r":{"Amarela":455,"Branca":47119,"Indigena":67,"Não identificado":4418,"Parda":7548,"Preta":2548},"d":{"Auditiva":408,"Fisica":670,"Mental":68,"Multipla":18,"Nao Defic":60653,"Reabilitado":117,"Visual":221},"p":{"Empresa de Pequeno Porte (EPP)":226,"Grande Empresa":13,"Microempresa (ME)":1908,"Média Empresa":67}},"2018":{"g":[17065,48861],"e":{"Fundamental completo (5 a 8 serie)":426,"6 ao 9 ano incompleto":1166,"Analfabeto":46,"Ate 5 serie incompleta":356,"Doutorado completo":51,"Fundamental completo":3327,"Medio completo":42353,"Medio incompleto":2234,"Mestrado completo":234,"Superior completo":13310,"Superior incompleto":2423},"r":{"Amarela":470,"Branca":49084,"Indigena":80,"Não identificado":5383,"Parda":8100,"Preta":2809},"d":{"Auditiva":417,"Fisica":708,"Mental":75,"Multipla":36,"Nao Defic":64278,"Reabilitado":135,"Visual":277},"p":{"Empresa de Pequeno Porte (EPP)":221,"Grande Empresa":15,"Microempresa (ME)":1937,"Média Empresa":68}},"2019":{"g":[15839,47308],"e":{"Fundamental completo (5 a 8 serie)":395,"6 ao 9 ano incompleto":1036,"Analfabeto":90,"Ate 5 serie incompleta":370,"Doutorado completo":26,"Fundamental completo":2808,"Medio completo":42124,"Medio incompleto":1977,"Mestrado completo":126,"Superior completo":11683,"Superior incompleto":2512},"r":{"Amarela":469,"Branca":45843,"Indigena":72,"Não identificado":5807,"Parda":8175,"Preta":2781},"d":{"Auditiva":377,"Fisica":568,"Mental":78,"Multipla":20,"Nao Defic":61727,"Reabilitado":152,"Visual":225},"p":{"Empresa de Pequeno Porte (EPP)":212,"Grande Empresa":15,"Microempresa (ME)":1988,"Média Empresa":66}},"2020":{"g":[15196,45136],"e":{"Fundamental completo (5 a 8 serie)":380,"6 ao 9 ano incompleto":949,"Analfabeto":88,"Ate 5 serie incompleta":297,"Doutorado completo":30,"Fundamental completo":2544,"Medio completo":40367,"Medio incompleto":1847,"Mestrado completo":113,"Superior completo":11350,"Superior incompleto":2367},"r":{"Amarela":434,"Branca":42836,"Indigena":61,"Não identificado":6664,"Parda":7694,"Preta":2643},"d":{"Auditiva":317,"Fisica":489,"Mental":70,"Multipla":12,"Nao Defic":59123,"Reabilitado":106,"Visual":215},"p":{"Empresa de Pequeno Porte (EPP)":218,"Grande Empresa":15,"Microempresa (ME)":2067,"Média Empresa":68}},"2021":{"g":[17637,50203],"e":{"Fundamental completo (5 a 8 serie)":381,"6 ao 9 ano incompleto":944,"Analfabeto":104,"Ate 5 serie incompleta":301,"Doutorado completo":39,"Fundamental completo":2613,"Medio completo":45904,"Medio incompleto":1964,"Mestrado completo":138,"Superior completo":12812,"Superior incompleto":2640},"r":{"Amarela":506,"Branca":46052,"Indigena":74,"Não identificado":9249,"Parda":8984,"Preta":2975},"d":{"Auditiva":396,"Fisica":653,"Mental":58,"Multipla":12,"Nao Defic":66303,"Reabilitado":99,"Visual":319},"p":{"Empresa de Pequeno Porte (EPP)":244,"Grande Empresa":15,"Microempresa (ME)":2211,"Média Empresa":72}},"2022":{"g":[20062,54076],"e":{"Fundamental completo (5 a 8 serie)":373,"6 ao 9 ano incompleto":986,"Analfabeto":113,"Ate 5 serie incompleta":282,"Doutorado completo":40,"Fundamental completo":2715,"Medio completo":50768,"Medio incompleto":2067,"Mestrado completo":167,"Superior completo":13662,"Superior incompleto":2965},"r":{"Amarela":549,"Branca":47740,"Indigena":85,"Não identificado":12271,"Parda":9933,"Preta":3560},"d":{"Auditiva":494,"Fisica":863,"Mental":74,"Multipla":46,"Nao Defic":72160,"Reabilitado":73,"Visual":428},"p":{"Empresa de Pequeno Porte (EPP)":262,"Grande Empresa":16,"Microempresa (ME)":1996,"Média Empresa":79}},"2023":{"g":[19470,55581],"e":{"Fundamental completo (5 a 8 serie)":395,"6 ao 9 ano incompleto":963,"Analfabeto":114,"Ate 5 serie incompleta":302,"Doutorado completo":40,"Fundamental completo":2713,"Medio completo":52426,"Medio incompleto":2222,"Mestrado completo":183,"Superior completo":12800,"Superior incompleto":2893},"r":{"Amarela":698,"Branca":48302,"Indigena":103,"Não identificado":10423,"Parda":11698,"Preta":3827},"d":{"Auditiva":450,"Fisica":839,"Mental":69,"Multipla":46,"Nao Defic":73142,"Reabilitado":80,"Visual":425},"p":{"Empresa de Pequeno Porte (EPP)":284,"Grande Empresa":19,"Microempresa (ME)":2577,"Média Empresa":81}},"2024":{"g":[21710,57725],"e":{"Fundamental completo (5 a 8 serie)":381,"6 ao 9 ano incompleto":957,"Analfabeto":111,"Ate 5 serie incompleta":338,"Doutorado completo":44,"Fundamental completo":2678,"Medio completo":53609,"Medio incompleto":2308,"Mestrado completo":189,"Superior completo":16378,"Superior incompleto":2442},"r":{"Amarela":809,"Branca":55819,"Indigena":124,"Não identificado":1451,"Parda":16300,"Preta":4932},"d":{"Auditiva":455,"Fisica":849,"Mental":78,"Multipla":47,"Nao Defic":77488,"Reabilitado":69,"Visual":449},"p":{"Empresa de Pequeno Porte (EPP)":300,"Grande Empresa":18,"Microempresa (ME)":2878,"Média Empresa":84}},"2025":{"g":[23522,59785],"e":{"Fundamental completo (5 a 8 serie)":376,"6 ao 9 ano incompleto":961,"Analfabeto":116,"Ate 5 serie incompleta":394,"Doutorado completo":44,"Fundamental completo":2627,"Medio completo":56508,"Medio incompleto":2455,"Mestrado completo":204,"Superior completo":16916,"Superior incompleto":2706},"r":{"Amarela":800,"Branca":57618,"Indigena":151,"Não identificado":868,"Parda":18379,"Preta":5491},"d":{"Auditiva":493,"Fisica":914,"Mental":107,"Multipla":53,"Nao Defic":81222,"Reabilitado":63,"Visual":455},"p":{"Empresa de Pequeno Porte (EPP)":288,"Grande Empresa":19,"Microempresa (ME)":2929,"Média Empresa":90}}}}}
+};
+/* Dados adicionados: IBGE PIA tab. 1853 (Brasil) e ABDI/FGV (MPEs, Brasil) */
+D.seg={"anos":[2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023],"divs":["Total","20 Fabricação de produtos químicos","22 Fabricação de produtos de borracha e de material plástico","24 Metalurgia","25 Fabricação de produtos de metal, exceto máquinas e equipamentos","28 Fabricação de máquinas e equipamentos","29 Fabricação de veículos automotores, reboques e carrocerias"],"po":{"Total":[7457582,7840905,7878307,8387141,8655946,8820350,9029154,8799195,8147062,7735266,7640646,7661294,7615503,7658207,8071752,8288417,8530658],"20 Fabricação de produtos químicos":[270522,275828,279067,295341,309681,320249,315601,324211,315177,306070,312064,301838,310865,317454,329398,349085,362269],"22 Fabricação de produtos de borracha e de material plástico":[387371,385641,393623,436656,437334,445397,454857,442634,402365,391946,370615,382674,376660,384887,399280,405291,422740],"24 Metalurgia":[227862,238158,221433,244209,244167,251496,258421,252686,213918,204012,206201,216033,217594,222016,236050,244249,246069],"25 Fabricação de produtos de metal, exceto máquinas e equipamentos":[510420,533351,515776,557947,575064,589255,594208,576037,504028,475170,450001,445118,442369,436375,476684,489686,504264],"28 Fabricação de máquinas e equipamentos":[375111,392829,374346,425284,452292,448603,475940,450402,378118,351010,334029,356506,366218,382000,420815,426162,430426],"29 Fabricação de veículos automotores, reboques e carrocerias":[464509,487498,480531,530922,550491,552201,551731,508689,449942,424046,432088,450185,442517,432634,442221,463558,463463]},"vbp":{"Total":[1412026744,1663363550,1526494166,1820372707,2024916936,2179688840,2416511396,2516415369,2515254185,2524163323,2669206640,3088872472,3262322144,3612710882,5177636512,6088341156,5845825000],"20 Fabricação de produtos químicos":[140401280,163618385,138339111,153657014,179846813,200997225,220726312,235226438,251985516,254672687,261269310,308108308,329785552,381557475,544965462,670924958,554181537],"22 Fabricação de produtos de borracha e de material plástico":[52552976,58604492,57651935,68427504,76285444,81355402,90185277,95804405,95310136,97423245,98672075,112746526,117869891,128457604,187095150,206255899,203472781],"24 Metalurgia":[120432372,143939182,99241981,126342097,132369515,136641888,156727787,164504638,160612046,149585386,173691382,229629995,224797447,251961949,443189155,450566324,388893333],"25 Fabricação de produtos de metal, exceto máquinas e equipamentos":[52115240,63263766,56266589,65702912,71866888,75950773,82468948,84890232,80825392,80276349,80797886,91223674,101496128,112389648,168432119,184712315,170368189],"28 Fabricação de máquinas e equipamentos":[67818113,82668590,66652171,89190709,100081755,104696623,121117325,121335672,102832194,96209843,101358552,119357125,134919796,153244064,238835104,294137330,287126242],"29 Fabricação de veículos automotores, reboques e carrocerias":[160027425,192338934,178120563,220263647,236999271,232005779,265388156,239672782,204486706,199138916,231507557,275871903,298096159,251750254,371104641,473506346,471550491]}};
+D.abdi={"bp":[["BP01","1. Conectar e Engajar","Uso de Mídias Sociais",0.445,0.169,0.386],["BP02","1. Conectar e Engajar","Website com funcionalidades interativas",0.392,0.275,0.333],["BP03","1. Conectar e Engajar","Experiência Omnichannel",0.314,0.474,0.212],["BP04","1. Conectar e Engajar","Ferramentas de Personalização da experiência",0.149,0.201,0.65],["BP05","1. Conectar e Engajar","Atendimento Automatizado para perguntas frequentes",0.033,0.731,0.236],["BP06","1. Conectar e Engajar","Criar Conteúdos e participar de discussões on-line",0.215,0.346,0.439],["BP07","2. Novas Bases de Competição","Desenvolver novas formas de competição",0.17,0.297,0.533],["BP08","2. Novas Bases de Competição","Participar de plataformas de negócios (marketplaces)",0.072,0.127,0.801],["BP09","2. Novas Bases de Competição","Acessar especialistas em ICT",0.295,0.186,0.519],["BP10","2. Novas Bases de Competição","Teletrabalho com ferramentas de gestão de equipes",0.237,0.359,0.404],["BP11","2. Novas Bases de Competição","Digitalizar e integrar processos de negócios",0.417,0.121,0.462],["BP12","3. Orientada a Dados","Coletar e armazenar dados na cadeia de suprimentos",0.283,0.232,0.485],["BP13","3. Orientada a Dados","Coletar e armazenar dados nas relações com clientes",0.19,0.264,0.546],["BP14","3. Orientada a Dados","Explorar dados de diversas fontes (estruturados e não-estruturados)",0.253,0.306,0.442],["BP15","3. Orientada a Dados","Usar dados para tomada de decisões",0.229,0.372,0.399],["BP16","3. Orientada a Dados","Desenvolver análises preditivas a partir dos dados",0.258,0.275,0.467],["BP17","3. Orientada a Dados","Qualificar os funcionários para uso dos dados",0.312,0.255,0.433],["BP18","4. Inovar Rápido","Inovar colaborativamente",0.116,0.205,0.68],["BP19","4. Inovar Rápido","Ambiente que encoraje a tomada de risco e a inovação",0.354,0.437,0.209],["BP20","4. Inovar Rápido","Construir, medir, aprender",0.477,0.216,0.306],["BP21","4. Inovar Rápido","Usar a rede de parceiros e fornecedores para inovar",0.511,0.306,0.184],["BP22","4. Inovar Rápido","Interagir com o ecossistema de inovação de sua região",0.228,0.279,0.493],["BP23","5. Gerar Mais Valor","Usar feedbacks on-line para gerar novos produtos",0.198,0.316,0.487],["BP24","5. Gerar Mais Valor","Desenvolver novos modelos de negócios de teste rápido",0.114,0.177,0.71],["BP25","5. Gerar Mais Valor","Tecnologia para compreender o que é valor para o cliente",0.404,0.329,0.267]],"tec":[["Acesso à internet banda larga",0.687,0.204,0.109],["Serviços de Cloud Computing (Nuvem)",0.254,0.184,0.562],["Uso de e-learning para qualificação da equipe",0.177,0.187,0.637],["Ferramentas de Cybersegurança",0.214,0.217,0.569],["Armazenamento de dados e rotinas de backups",0.379,0.218,0.403]],"fmt":[["Curso on-line assíncrono",0.533,0.3716,0.0981],["Curso on-line síncrono",0.503,0.4341,0.0629],["Vídeos com instruções (ex: YouTube)",0.6636,0.2932,0.0431],["Conteúdos gamificados",0.1563,0.8184,0.0253],["Mentoria on-line",0.3304,0.6324,0.0372]],"dif":[["Falta de recursos para investir na transformação digital",0.38],["Dificuldade em acessar pessoas/empresas com capacidade de ajudar",0.14],["Dificuldade em compreender as prioridades de investimento",0.13],["Falta de estratégia da empresa para atuação no universo digital",0.11],["Falta de tecnologias básicas que permitam usar avançadas",0.1],["Outros",0.08],["Resistência à mudança por parte dos diretores/gerentes",0.06]]};
+const SOURCES = [
+ // [categoria, título, url, nota]
+ ["Projeto Sorocaba","Observatório Sebrae – perfil de Sorocaba (empresas)","https://observatorio.sebrae.com.br/profile/geo/sorocaba?selector388id=sebraeCompanies9&selector245id=geo3552205#bespoke-title-730","Eixo 1 · estrutura empresarial"],
+ ["Projeto Sorocaba","Observatório Sebrae – perfil SP/Sorocaba","https://observatorio.sebrae.com.br/profile/geo/sp-sorocaba","Mais focado no trabalho em si"],
+ ["Projeto Sorocaba","IBGE – livro liv91152 (págs. 55, 66, 72, 74, 76, 80)","https://biblioteca.ibge.gov.br/visualizacao/livros/liv91152.pdf","Eixo 1"],
+ ["Projeto Sorocaba","IBGE – livro liv99051 (págs. 22, 41, 45)","https://biblioteca.ibge.gov.br/visualizacao/livros/liv99051.pdf","Eixo 1"],
+ ["Projeto Sorocaba","IBGE – informativo liv101688 (págs. 6, 2, 3)","https://biblioteca.ibge.gov.br/visualizacao/livros/liv101688_informativo.pdf","Eixo 1"],
+ ["Projeto Sorocaba","Jornal Z Norte – PIB de Sorocaba é o 10º do Estado e o 24º do Brasil","https://jornalznorte.com.br/sorocaba/totalizando-quase-r-59-bilhoes-pib-de-sorocaba-e-o-10o-do-estado-e-o-24o-do-brasil","14/08/2026 · boa análise da progressão do PIB"],
+ ["Projeto Sorocaba","IBGE Cidades – Sorocaba","https://www.ibge.gov.br/cidades-e-estados/sp/sorocaba.html","Origem dos indicadores deste painel"],
+ ["Projeto Sorocaba","IBGE – PIB dos Municípios (base do Excel 2010–2023)","https://www.ibge.gov.br/estatisticas/economicas/contas-nacionais/9088-produto-interno-bruto-dos-municipios.html?=&t=resultados","Série temporal do PIB"],
+ ["Projeto Sorocaba","SEADE – PIB municipal","https://pib.seade.gov.br/municipal/","Tendências da economia de SP"],
+ ["Projeto Sorocaba","Portal Salário – montadoras (CNAE 2910-7/01)","https://www.salario.com.br/empresas/fabricacao-de-automoveis-camionetas-e-utilitarios/sorocaba-sp-2910701/","Cargos e salários · CAGED · atualizado 03/09/2026"],
+ ["Projeto Sorocaba","Portal Salário – autopeças (2949-2/99)","https://www.salario.com.br/empresas/fabricacao-de-outras-pecas-e-acessorios-para-veiculos-automotores/sorocaba-sp-2949299/","Segmento automotivo"],
+ ["Projeto Sorocaba","Portal Salário – válvulas e registros (2813-5/00)","https://www.salario.com.br/empresas/fabricacao-de-valvulas-registros-e-dispositivos-semelhantes-pecas-e-acessorios/sorocaba-sp-2813500/","Máquinas e equipamentos"],
+ ["Projeto Sorocaba","Portal Salário – comércio de autopeças (4530-7/03)","https://www.salario.com.br/empresas/comercio-a-varejo-de-pecas-e-acessorios-novos-para-veiculos-automotores/sorocaba-sp-4530703/","Comércio"],
+ ["Projeto Sorocaba","Portal Salário – estacionamentos (5223-1/00)","https://www.salario.com.br/empresas/estacionamento-de-veiculos/sorocaba-sp-5223100","Serviços"],
+ ["Projeto Sorocaba","Portal Salário – baterias automotivas (2722-8/01)","https://www.salario.com.br/empresas/fabricacao-de-baterias-e-acumuladores-para-veiculos-automotores/sorocaba-sp-2722801/","Indústria"],
+ ["Projeto Sorocaba","Portal Salário – serralheria (2542-0/00)","https://www.salario.com.br/empresas/fabricacao-de-artigos-de-serralheria/sorocaba-sp-2542000/","Metalurgia"],
+ ["Projeto Sorocaba","Portal Salário – embalagens plásticas (2222-6/00)","https://www.salario.com.br/empresas/fabricacao-de-embalagens-de-material-plastico/sorocaba-sp-2222600/","Químico/plásticos"],
+ ["Projeto Sorocaba","Jornal Cruzeiro – Sorocaba cria 1.414 empregos em agosto","https://www.jornalcruzeiro.com.br/sorocaba/noticias/2026/09/765917-sorocaba-cria-1-414-empregos-em-agosto-apos-dois-meses-de-saldo-negativo.html","Eixo 2 · novas vagas"],
+ ["Projeto Sorocaba","MTE – Programa PDET","https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/acoes-e-programas/programas-projetos-acoes-obras-e-atividades/estatisticas-trabalho/o-pdet","Eixo 2"],
+ ["Projeto Sorocaba","Sebrae – Panorama do Emprego nas MPEs","https://datasebrae.com.br/panorama-do-emprego/","Baseado na RAIS"],
+ ["Projeto Sorocaba","CNI – Mapa do Trabalho Industrial 2025–2027","https://www.portaldaindustria.com.br/canais/observatorio-nacional-da-industria/produtos/mapa-do-trabalho-industrial-2025-2027/","Difícil achar dados de Sorocaba"],
+ ["Projeto Sorocaba","Acionista – País tinha 9,4 milhões de empresas em 2022","https://acionista.com.br/pais-tinha-94-milhoes-de-empresas-em-2022-mostra-pesquisa-do-ibge/","Escolaridade e upskilling"],
+
+ ["IBGE","SIDRA – API (apisidra)","https://apisidra.ibge.gov.br/","Extração automática de dados"],
+ ["IBGE","API de dados do IBGE – documentação","https://servicodados.ibge.gov.br/api/docs","Ferramenta"],
+ ["IBGE","API de agregados v3","https://servicodados.ibge.gov.br/api/docs/agregados?versao=3","Ferramenta"],
+ ["IBGE","Panorama do Censo 2022","https://censo2022.ibge.gov.br/panorama/","Censo"],
+ ["IBGE","Censo 2022 – primeiros resultados: população e domicílios","https://sidra.ibge.gov.br/pesquisa/censo-demografico/demografico-2022/primeiros-resultados-populacao-e-domicilios","Censo"],
+ ["IBGE","SIDRA 4711 – Censo 2022: domicílios","https://sidra.ibge.gov.br/tabela/4711","Total recenseado"],
+ ["IBGE","SIDRA 1310 – Censos 2000 e 2010: domicílios","https://sidra.ibge.gov.br/tabela/1310","Urbano e rural"],
+ ["IBGE","Favelas e comunidades urbanas – Censo 2022","https://www.ibge.gov.br/estatisticas/sociais/populacao/22827-censo-demografico-2022.html?edicao=41773&t=resultados","Domicílios e população"],
+ ["IBGE","Plataforma Geográfica Interativa (PGI)","https://censo2022.ibge.gov.br/apps/pgi/#/home","Mapas"],
+ ["IBGE","SIDRA – página inicial","https://sidra.ibge.gov.br/","Sistema de recuperação automática"],
+ ["IBGE","SIDRA 5457 – Produção Agrícola Municipal","https://sidra.ibge.gov.br/pesquisa/pam/tabelas","PAM"],
+ ["IBGE","SIDRA 3939 – Pesquisa da Pecuária Municipal","https://sidra.ibge.gov.br/pesquisa/ppm/tabelas/brasil/2023","PPM"],
+ ["IBGE","Produção da Extração Vegetal e da Silvicultura","https://sidra.ibge.gov.br/pesquisa/pevs/tabelas/brasil/2023","PEVS"],
+ ["IBGE","SIDRA 5938 – PIB dos Municípios por setor (VAB)","https://sidra.ibge.gov.br/tabela/5938","Eixo 1 · valor adicionado por setor"],
+ ["IBGE","CEMPRE – Cadastro Central de Empresas","https://sidra.ibge.gov.br/pesquisa/cempre/tabelas/brasil/2022","Empresas"],
+ ["IBGE","SIDRA 6510 – empresas e empregos por setor (2006–2021)","https://sidra.ibge.gov.br/tabela/6510","Série encerrada em 2021 (mudança e-Social)"],
+ ["IBGE","SIDRA 9510 – empresas e empregos por setor (2022–2023)","https://sidra.ibge.gov.br/tabela/9510","Nova série, sem comparação com a anterior"],
+ ["IBGE","SIDRA 6450 – por setor e porte (2006–2021)","https://sidra.ibge.gov.br/tabela/6450","Eixo 1 · porte"],
+ ["IBGE","SIDRA 9528 – por setor e porte (2022–2023)","https://sidra.ibge.gov.br/tabela/9528","Eixo 1 · porte"],
+ ["IBGE","Estatísticas dos Cadastros de MEI","https://sidra.ibge.gov.br/pesquisa/cadastros-de-mei/tabelas/brasil/2022","MEI"],
+ ["IBGE","PNAD Contínua – tabelas","https://sidra.ibge.gov.br/pesquisa/pnadca/tabelas","Trabalho e renda"],
+ ["IBGE","SIDRA 3425 – Pessoas com deficiência","https://sidra.ibge.gov.br/tabela/3425","Eixo 2 · PcD"],
+ ["IBGE","IBGE Cidades – panorama","https://cidades.ibge.gov.br/","Resumo por município"],
+ ["IBGE","Downloads de estatísticas do IBGE","https://www.ibge.gov.br/estatisticas/downloads-estatisticas.html","Várias bases"],
+
+ ["Sebrae / FIESP","Data Sebrae MPE – data explorer","https://datampe.sebrae.com.br/data-explorer","Micro e pequenas empresas"],
+ ["Sebrae / FIESP","Observatório Sebrae – data explorer","https://observatorio.sebrae.com.br/data-explorer","Dados por município"],
+ ["Sebrae / FIESP","Observatório de Startups","https://observatorio.sebraestartups.com.br/pt-br","Startups"],
+ ["Sebrae / FIESP","FIESP – inteligência de dados de mercado","https://inteligencia-dados.fiesp.com.br/inteligencia-mercado/index.html","Indústria paulista"],
+
+ ["SEADE","Valor da Transformação Industrial por município","https://industria.seade.gov.br/municipios","VTI 2021"],
+ ["SEADE","IPRS – Índice Paulista de Responsabilidade Social","http://www.iprs.seade.gov.br/#/","2014, 2016 e 2018"],
+ ["SEADE","IDHM 2010 (repositório)","https://repositorio.seade.gov.br/dataset/social/resource/fe872142-e28d-49bd-9b45-9287608b5c92","Base do IDHM"],
+ ["SEADE","IPVS – Vulnerabilidade Social 2010","http://ipvs.seade.gov.br/view/index.php","Social"],
+ ["SEADE","Distribuição de renda – Censos 1991, 2000, 2010","http://www.imp.seade.gov.br/frontend/#/tabelas","Renda"],
+ ["SEADE","Empresas e empregos formais por setor","https://empresa.seade.gov.br/","Empresas"],
+ ["SEADE","Emprego por município","https://municipios.seade.gov.br/emprego/","Emprego"],
+
+ ["Emprego e empresas","CAGED – Sistema Público de Emprego e Renda por município","https://bi.mte.gov.br/bgcaged/caged_isper/index.php#","Eixo 2"],
+ ["Emprego e empresas","RAIS 2024","https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/rais/rais-2024","Dados em Power BI"],
+ ["Emprego e empresas","Microdados RAIS e CAGED","https://www.gov.br/trabalho-e-emprego/pt-br/assuntos/estatisticas-trabalho/microdados-rais-e-caged","Download"],
+ ["Emprego e empresas","Mapa de Empresas – tempo de abertura","https://www.gov.br/empresas-e-negocios/pt-br/mapa-de-empresas","Painel oficial"],
+ ["Emprego e empresas","Painel do Mapa de Empresas","https://www.gov.br/empresas-e-negocios/pt-br/mapa-de-empresas/painel-mapa-de-empresas","Painel"],
+ ["Emprego e empresas","Dados abertos – CNPJ","https://dados.gov.br/dados/conjuntos-dados/cadastro-nacional-da-pessoa-juridica---cnpj","Lista de empresas"],
+
+ ["Educação","QEDU – Fundação Lemann","https://www.qedu.org.br/","IDEB, Censo Escolar"],
+ ["Educação","INEP – dados abertos","https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos","MEC/INEP"],
+ ["Educação","Inep Data","https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/inep-data","Painéis"],
+ ["Educação","Microdados do INEP","https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados","Download"],
+ ["Educação","Censo da Educação Superior (1995–2023)","https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-da-educacao-superior","Upskilling"],
+ ["Educação","Censo Escolar – Educação Básica (1995–2023)","https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/microdados/censo-escolar","Básica"],
+
+ ["Meio ambiente","MapBiomas – plataforma","https://plataforma.brasil.mapbiomas.org/","Uso e cobertura"],
+ ["Meio ambiente","MapBiomas – estatísticas","https://brasil.mapbiomas.org/estatisticas/","Coleção 10 ou superior"],
+ ["Meio ambiente","SEEG – emissões de gases de efeito estufa","https://plataforma.seeg.eco.br/","GEE"],
+ ["Meio ambiente","SINISA – série histórica","https://app4.cidades.gov.br/serieHistorica/","Saneamento"],
+ ["Meio ambiente","SINISA – indicadores 2025","https://indicadores-sinisa-2025.cidades.gov.br/","Saneamento"],
+ ["Meio ambiente","Trata Brasil – painel de saneamento","https://tratabrasil.org.br/painel-saneamento-brasil/","Saneamento"],
+ ["Meio ambiente","Connected Smart Cities","https://connectedsmartcities.com.br/","Smart cities"],
+ ["Meio ambiente","Índice de Desenvolvimento Sustentável das Cidades (ODS)","https://idsc.cidadessustentaveis.org.br/","ODS"],
+
+ ["Saúde e segurança","DATASUS – TabNet","https://datasus.saude.gov.br/informacoes-de-saude-tabnet/","Saúde, SINAN"],
+ ["Saúde e segurança","SSP-SP – estatísticas","https://www.ssp.sp.gov.br/estatistica","Segurança"],
+ ["Saúde e segurança","SSP-SP – violência contra a mulher","https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher","Gênero"],
+ ["Saúde e segurança","Atlas da Violência (IPEA)","https://www.ipea.gov.br/atlasviolencia/filtros-series","Séries"],
+ ["Saúde e segurança","Observatório Brasil da Igualdade de Gênero","https://www.gov.br/mulheres/pt-br/observatorio-brasil-da-igualdade-de-genero","Gênero"],
+
+ ["Investimento e finanças","Investimentos anunciados – SEADE","https://investimentos.seade.gov.br/","Por região/município"],
+ ["Investimento e finanças","Investe SP","https://www.investe.sp.gov.br/","Governo de SP"],
+ ["Investimento e finanças","Investe SP – SP em mapas","https://www.investe.sp.gov.br/sp-em-mapas/","Mapas"],
+ ["Investimento e finanças","Comex Stat – exportações e importações","https://comexstat.mdic.gov.br/pt/home","MDIC"],
+ ["Investimento e finanças","Banco Central – estatística bancária por município","https://www.bcb.gov.br/estatisticas/estatisticabancariamunicipios","Crédito"],
+ ["Investimento e finanças","B3 – empresas listadas","https://www.b3.com.br/pt_br/produtos-e-servicos/negociacao/renda-variavel/empresas-listadas.htm","Empresas disruptivas"],
+ ["Investimento e finanças","XP – tabela de múltiplos","https://conteudos.xpi.com.br/acoes/relatorios/tabela-de-multiplos-xp/","Rentabilidade de ações"],
+ ["Investimento e finanças","SECOVI – pesquisas e índices","https://secovi.com.br/pesquisas-e-indices/","Mercado imobiliário"],
+
+ ["Outras bases","Portal Dados Abertos do Governo Federal","https://dados.gov.br/home","Geral"],
+ ["Outras bases","TCE-SP – Tribunal de Contas do Estado","https://www.tce.sp.gov.br/","Transparência municipal"],
+ ["Outras bases","TCE-SP – IEG-M","https://www.tce.sp.gov.br/iegm","Efetividade da gestão municipal"],
+ ["Outras bases","Base dos Dados","https://basedosdados.org/search","Dados oficiais tratados"],
+ ["Outras bases","Atlas do Desenvolvimento Humano – ranking","http://www.atlasbrasil.org.br/ranking","IDHM"],
+ ["Outras bases","Bolsa Família – relatório de informações","https://aplicacoes.cidadania.gov.br/ri/pbfcad/","Social"],
+
+ ["IBGE","SIDRA 1853 – PIA-Empresa por divisão CNAE (aba Indústria 4.0)","https://sidra.ibge.gov.br/tabela/1853","Brasil · pessoal ocupado e valor bruto da produção"],
+ ["Estudos modelo","ABDI/FGV – Mapa de Digitalização das MPEs","https://www.abdi.com.br/","Arquivo enviado · Brasil, MPEs"],
+ ["Estudos modelo","Plano Diretor de Sorocaba – Relatório de Caracterização (2024)","https://planejamento.sorocaba.sp.gov.br/relatorio-de-caracterizac%cc%a7a%cc%83o/","Págs. 65 a 94: meio socioeconômico e demografia"],
+ ["Estudos modelo","Índice de Sustentabilidade – Região Metropolitana de Sorocaba (UNESP, 2023)","https://repositorio.unesp.br/items/e168d597-5a4f-4dbf-9ddf-66caf56042f9","ISE"]
+];
+const AXES = [
+ {t:"Eixo 1 · Estrutura empresarial e PIB", items:[
+   ["ok","PIB per capita 2023 e PIB total (quase R$ 59 bi)"],["ok","Ranking: 10º em SP e 24º no Brasil"],
+   ["ok","Série do PIB (2002–2023) e participação do VAB industrial no PIB (2006–2021)"],
+   ["ok","Porte dos estabelecimentos: ME, EPP, média e grande (RAIS; MEI não aparece separado)"],
+   ["ok","Crescimento anual do PIB, 2003–2023 (derivado)"],["ok","Segmentos por CNAE, Brasil: automotivo, metalurgia, máquinas, químico/plásticos (aba Indústria 4.0)"],
+   ["pend","Segmentos por CNAE só de Sorocaba (Portal Salário / RAIS por subclasse)"],["pend","VAB de serviços, comércio e agropecuária e VAB industrial de 2022–2023 (SIDRA 5938)"],["pend","Correção monetária pelo IPCA (séries estão em valores correntes)"],["pend","Balança comercial local (Comex Stat / MDIC)"]]},
+ {t:"Eixo 2 · Capital humano industrial", items:[
+   ["ok","Saldo mensal do emprego formal no Brasil (Novo CAGED)"],["ok","Saldo de Sorocaba em agosto/2026: +1.414"],
+   ["pend","Salário médio por setor: refazer a extração da RAIS (valores vieram corrompidos)"],
+   ["ok","Proporção de gênero e participação feminina (RAIS 2016–2025)"],
+   ["ok","Escolaridade da força de trabalho (RAIS 2016–2025)"],
+   ["ok","Pessoas com deficiência nos vínculos formais (RAIS 2016–2025)"],
+   ["ok","Indicadores % de ensino médio+, PcD e microempresas por seção e ano (RAIS)"],["pend","Faixa etária da força de trabalho (não consta na base RAIS enviada)"],["pend","Salário e massa salarial por setor, inclusive comércio e serviços"]]},
+ {t:"Eixo 3 · Transformação tecnológica e Indústria 4.0", items:[
+   ["ok","Maturidade digital das MPEs, Brasil (ABDI/FGV)"],["ok","Produtividade por operário por segmento CNAE, Brasil (IBGE PIA)"],
+   ["pend","Maturidade digital por segmento industrial de Sorocaba"],["pend","Produtividade com tecnologias 4.0 (IoT, IA, manutenção preditiva) frente à média nacional"]]},
+ {t:"Eixo 4 · Análise territorial e projeções", items:[
+   ["ok","Área, densidade e população (Censo 2022 e estimativa 2026)"],["ok","Projeção simples de população (aba Território)"],["ok","Regressões linear e exponencial até 2030: PIB, VAB, vínculos (aba Projeções 2030)"],["pend","Conflitos de zoneamento urbano-industrial (Plano Diretor)"],
+   ["pend","Fonte indicada: Observatório Sebrae SP/Sorocaba"]]}
+];
+
+/* ================== UTIL ================== */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const nf=(d=0)=>new Intl.NumberFormat("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const fmt=(n,d=0)=>nf(d).format(n);
+const brl=(n,d=0)=>"R$ "+fmt(n,d);
+const compact=(n)=>{const a=Math.abs(n);
+  if(a>=1e9) return fmt(n/1e9,2)+" bi";
+  if(a>=1e6) return fmt(n/1e6,1)+" mi";
+  if(a>=1e3) return fmt(n/1e3,0)+" mil";
+  return fmt(n)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function niceTicks(min,max,n=5){
+  if(min===max){max=min+1}
+  const range=max-min, raw=range/n, mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  const r=raw/mag, step=(r<1.5?1:r<3?2:r<7?5:10)*mag;
+  const lo=Math.floor(min/step)*step, hi=Math.ceil(max/step)*step, t=[];
+  for(let v=lo;v<=hi+step/2;v+=step)t.push(+v.toFixed(10));
+  return t;
+}
+
+/* Tooltip global */
+const tip=$("#tip");
+document.addEventListener("mousemove",e=>{
+  const t=e.target.closest&&e.target.closest("[data-tip]");
+  if(!t){tip.style.opacity=0;return}
+  tip.textContent=t.getAttribute("data-tip");
+  tip.style.opacity=1;
+  const w=tip.offsetWidth,h=tip.offsetHeight;
+  let x=e.clientX+14,y=e.clientY-h-10;
+  if(x+w>innerWidth-8)x=e.clientX-w-14;
+  if(y<8)y=e.clientY+16;
+  tip.style.left=x+"px";tip.style.top=y+"px";
+});
+document.addEventListener("mouseleave",()=>tip.style.opacity=0);
+
+/* ================== GRÁFICOS SVG ================== */
+function barChart(el,items,o={}){
+  const W=820,H=o.h||320,m={l:62,r:14,t:22,b:o.rot?64:40};
+  const vals=items.map(d=>d.value);
+  const t=niceTicks(Math.min(0,...vals),Math.max(0,...vals));
+  const lo=t[0],hi=t[t.length-1];
+  const iw=W-m.l-m.r, ih=H-m.t-m.b, y=v=>m.t+ih-(v-lo)/(hi-lo)*ih;
+  const bw=iw/items.length, pad=Math.min(bw*0.22,14);
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||"Gráfico de barras")}">`;
+  t.forEach(v=>{s+=`<line class="gl" x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}"/><text x="${m.l-8}" y="${y(v)+4}" text-anchor="end">${compact(v)}</text>`});
+  s+=`<line class="ax" x1="${m.l}" x2="${W-m.r}" y1="${y(0)}" y2="${y(0)}"/>`;
+  items.forEach((d,i)=>{
+    const x=m.l+i*bw+pad, w=bw-pad*2, y0=y(0), y1=y(d.value);
+    const top=Math.min(y0,y1), h=Math.max(Math.abs(y1-y0),1);
+    s+=`<rect class="bar" x="${x}" y="${top}" width="${w}" height="${h}" rx="3" fill="${d.color}" data-tip="${esc(d.tip)}"/>`;
+    if(items.length<=14){
+      const ly=d.value>=0?top-5:top+h+12;
+      s+=`<text class="val" x="${x+w/2}" y="${ly}" text-anchor="middle">${compact(d.value)}</text>`;
+    }
+    const lx=x+w/2, ly=H-m.b+16;
+    s+= o.rot ? `<text x="${lx}" y="${ly}" text-anchor="end" transform="rotate(-35 ${lx} ${ly})">${esc(d.label)}</text>`
+              : `<text x="${lx}" y="${ly}" text-anchor="middle">${esc(d.label)}</text>`;
+  });
+  s+=`</svg>`;
+  el.innerHTML=s;
+}
+
+function lineChart(el,xs,series,o={}){
+  const W=o.w||820,H=o.h||300,m={l:70,r:16,t:16,b:34};
+  const all=series.flatMap(s=>s.y.filter(v=>v!=null));
+  const t=niceTicks(o.yMin!=null?o.yMin:Math.min(...all)*0.97,Math.max(...all)*1.02,5);
+  const lo=t[0],hi=t[t.length-1], iw=W-m.l-m.r, ih=H-m.t-m.b;
+  const X=i=>m.l+(xs.length===1?iw/2:i/(xs.length-1)*iw), Y=v=>m.t+ih-(v-lo)/(hi-lo)*ih;
+  let s=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||"Gráfico de linhas")}">`;
+  t.forEach(v=>{s+=`<line class="gl" x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${m.l-8}" y="${Y(v)+4}" text-anchor="end">${o.dec!=null?fmt(v,o.dec):compact(v)}</text>`});
+  const every=Math.ceil(xs.length/10);
+  xs.forEach((x,i)=>{if(i%every===0||i===xs.length-1)s+=`<text x="${X(i)}" y="${H-10}" text-anchor="middle">${x}</text>`});
+  series.forEach(se=>{
+    let d="",pen=false;
+    se.y.forEach((v,i)=>{if(v==null){pen=false;return}d+=(pen?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)+" ";pen=true});
+    s+=`<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2.4" ${se.dash?'stroke-dasharray="6 5"':""} stroke-linejoin="round" stroke-linecap="round"/>`;
+    (se.marks||[]).forEach(i=>{s+=`<circle cx="${X(i)}" cy="${Y(se.y[i])}" r="5.5" fill="var(--card)" stroke="${se.color}" stroke-width="2.4" data-tip="${esc(se.name)}\n${xs[i]}: ${fmt(se.y[i])} (dado oficial)"/>`});
+  });
+  s+=`<line id="lc_guide" class="ax" y1="${m.t}" y2="${H-m.b}" x1="0" x2="0" stroke-dasharray="3 3" style="opacity:0"/>`;
+  s+=`<rect id="lc_hit" x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent"/></svg>`;
+  el.innerHTML=s;
+  const svg=$("svg",el), hit=$("#lc_hit",el), g=$("#lc_guide",el);
+  hit.addEventListener("mousemove",e=>{
+    const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)/r.width*W;
+    const i=Math.max(0,Math.min(xs.length-1,Math.round((px-m.l)/iw*(xs.length-1))));
+    g.setAttribute("x1",X(i));g.setAttribute("x2",X(i));g.style.opacity=1;
+    hit.setAttribute("data-tip",xs[i]+"\n"+series.map(se=>se.y[i]!=null?`${se.name}: ${fmt(se.y[i],o.dec||0)}`:null).filter(Boolean).join("\n"));
+  });
+  hit.addEventListener("mouseleave",()=>{g.style.opacity=0});
+}
+
+function hbarsHTML(rows){return rows.map(r=>`<div class="hbar"><div class="row"><span>${r.label}</span><b>${r.text}</b></div><div class="track"><div class="fill" style="width:${Math.max(0,Math.min(100,r.value/r.max*100))}%;background:${r.color}" data-tip="${esc(r.tip||r.text)}"></div></div></div>`).join("")}
+function hbars(el,rows){ // rows:[{label,value,max,color,text}]
+  el.innerHTML=rows.map(r=>`<div class="hbar"><div class="row"><span>${r.label}</span><b>${r.text}</b></div>
+   <div class="track"><div class="fill" style="width:${Math.max(0,Math.min(100,r.value/r.max*100))}%;background:${r.color}" data-tip="${esc(r.tip||r.text)}"></div></div></div>`).join("");
+}
+
+/* ================== KPI ================== */
+const ICONS={users:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8"/></svg>`,wave:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,pin:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>`,cap:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>`,money:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`,chart:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-5l4 3V9l4 3V6l4 4v6"/></svg>`,heart:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 00-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 000-7.8z"/></svg>`,area:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h18v18H3z"/><path d="M3 9h18M9 21V9"/></svg>`,trend:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>`,down:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>`,up:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>`,award:`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.5 13.5L17 22l-5-3-5 3 1.5-8.5"/></svg>`};
+function kpi(c){return `<div class="card kpi ${c.go?"link":""}" ${c.go?`data-go="${c.go}"`:""} ${c.tip?`data-tip="${esc(c.tip)}"`:""}>
+  ${c.i?`<div class="ic">${ICONS[c.i]}</div>`:""}<div class="v ${c.cls||""}">${c.v}</div><div class="l">${c.l}</div><div class="s">${c.s}</div></div>`}
+
+const cagr=Math.pow(D.pop2026/D.pop2022,1/4)-1;
+const saldoFin=D.receitas-D.despesas;
+const impPIB=D.pibPC*D.pop2022;
+
+$("#kpiGeral").innerHTML=[
+ {i:"users",l:"População estimada",v:fmt(D.pop2026),s:"2026 · IBGE",go:"territorio"},
+ {i:"money",l:"PIB per capita",v:brl(D.pibPC,0),s:"2023 · IBGE",go:"financas"},
+ {i:"chart",l:"PIB total (aprox.)",v:"R$ 59 bi",s:"10º em SP · 24º no Brasil",go:"financas"},
+ {i:"award",l:"IDHM",v:"0,798",s:"2010 · faixa Alto",go:"territorio"},
+ {i:"cap",l:"Escolarização 6–14",v:"98,66%",s:"2022",go:"territorio"},
+ {i:"trend",l:"Saldo de empregos (ago/26)",v:"+1.414",s:"Sorocaba · após 2 meses negativos",cls:"pos",go:"emprego"}
+].map(kpi).join("");
+
+$("#kpiTerr").innerHTML=[
+ {i:"area",l:"Área territorial",v:fmt(D.area,3)+" km²",s:"2025"},
+ {i:"users",l:"População (Censo 2022)",v:fmt(D.pop2022),s:"Último censo"},
+ {i:"users",l:"População estimada",v:fmt(D.pop2026),s:"2026"},
+ {i:"pin",l:"Densidade demográfica",v:fmt(D.dens,2),s:"hab/km² · 2022"},
+ {i:"trend",l:"Crescimento médio anual",v:fmt(cagr*100,2)+"%",s:"2022→2026 (cálculo derivado)",cls:"pos",tip:"(766.390 ÷ 723.682)^(1/4) − 1"}
+].map(kpi).join("");
+
+$("#kpiFin").innerHTML=[
+ {i:"up",l:"Receitas brutas realizadas",v:"R$ "+fmt(D.receitas/1e9,2)+" bi",s:"2025"},
+ {i:"down",l:"Despesas brutas empenhadas",v:"R$ "+fmt(D.despesas/1e9,2)+" bi",s:"2025"},
+ {i:"wave",l:"Resultado (receitas − despesas)",v:"− R$ "+fmt(-saldoFin/1e6,1)+" mi",s:fmt(saldoFin/D.receitas*100,2)+"% da receita · déficit",cls:"neg"},
+ {i:"money",l:"PIB per capita",v:brl(D.pibPC,2),s:"2023"}
+].map(kpi).join("");
+
+/* ================== TABS ================== */
+function show(id){
+  $$("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===id));
+  $$("main > section").forEach(s=>s.hidden=s.id!==id);
+  try{history.replaceState(null,"","#"+id)}catch(e){}
+  scrollTo({top:0});
+}
+$("#tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b)show(b.dataset.tab)});
+document.addEventListener("click",e=>{const k=e.target.closest("[data-go]");if(k)show(k.dataset.go)});
+
+/* theme */
+$("#themeBtn").addEventListener("click",()=>{
+  const r=document.documentElement,cur=r.getAttribute("data-theme");
+  const dark=cur?cur==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  r.setAttribute("data-theme",dark?"light":"dark");
+});
+
+/* ================== VISÃO GERAL: ranking ================== */
+hbars($("#rankBars"),[
+ {label:"Posição no Estado de SP (10º de 645)",value:645-10+1,max:645,color:"var(--blue)",text:"10º · top 1,6%",tip:"10º entre 645 municípios paulistas"},
+ {label:"Posição no Brasil (24º de 5.570)",value:5570-24+1,max:5570,color:"var(--teal)",text:"24º · top 0,4%",tip:"24º entre 5.570 municípios brasileiros"}
+]);
+
+/* ================== TERRITÓRIO ================== */
+(function(){
+  const zones=[["Muito baixo",0,0.5,"var(--red)"],["Baixo",0.5,0.6,"var(--amber)"],["Médio",0.6,0.7,"var(--blue-soft)"],["Alto",0.7,0.8,"var(--teal)"],["Muito alto",0.8,1,"var(--green)"]];
+  $("#idhmZones").innerHTML=zones.map(z=>`<span style="width:${(z[2]-z[1])*100}%;background:${z[3]}" data-tip="${z[0]}: ${fmt(z[1],1)} a ${fmt(z[2],1)}"></span>`).join("")+`<div class="zmark" style="left:calc(${D.idhm*100}% - 1px)" data-tip="Sorocaba: 0,798"></div>`;
+  $("#idhmLabels").innerHTML=zones.map(z=>`<span style="width:${(z[2]-z[1])*100}%">${z[0]}</span>`).join("");
+
+  const rate=$("#rate"), year=$("#year");
+  function draw(){
+    const r=+rate.value/100, end=+year.value;
+    $("#rateOut").textContent=fmt(+rate.value,1)+"% a.a.";
+    $("#yearOut").textContent=end;
+    const xs=[];for(let a=2022;a<=end;a++)xs.push(a);
+    const obs=xs.map((a,i)=>a<=2026?null:Math.round(D.pop2026*Math.pow(1+cagr,a-2026)));
+    const full=xs.map(a=>a===2022?D.pop2022:(a===2026?D.pop2026:null));
+    const obsLine=xs.map((a,i)=>a<=2026?(a===2022?D.pop2022:(a===2026?D.pop2026:Math.round(D.pop2022*Math.pow(D.pop2026/D.pop2022,(a-2022)/4)))):obs[i]);
+    const scen=xs.map(a=>a<2026?null:Math.round(D.pop2026*Math.pow(1+r,a-2026)));
+    lineChart($("#projChart"),xs,[
+      {name:"Tendência 2022–26 mantida ("+fmt(cagr*100,2)+"% a.a.)",color:"var(--blue)",y:obsLine,marks:[0,4]},
+      {name:"Seu cenário ("+fmt(r*100,1)+"% a.a.)",color:"var(--amber)",dash:true,y:scen}
+    ],{label:"Projeção da população de Sorocaba",yMin:700000,w:560,h:320});
+    $("#projLegend").innerHTML=`<span><i style="background:var(--blue)"></i>Tendência observada (círculos = Censo 2022 e estimativa 2026)</span><span><i style="background:var(--amber)"></i>Cenário do controle</span>`;
+    const i=xs.length-1, v1=obsLine[i], v2=scen[i];
+    $("#projText").innerHTML=`Em <b>${end}</b>: tendência mantida → <b>${fmt(v1)}</b> hab.; seu cenário → <b>${fmt(v2)}</b> hab. (diferença de <b>${fmt(v2-v1)}</b>).`;
+  }
+  rate.value=(cagr*100).toFixed(1);
+  rate.addEventListener("input",draw);year.addEventListener("input",draw);draw();
+})();
+
+/* ================== FINANÇAS ================== */
+(function(){
+  hbars($("#finBars"),[
+   {label:"Receitas brutas realizadas",value:D.receitas,max:D.despesas*1.02,color:"var(--blue)",text:brl(D.receitas,2),tip:"Receitas: "+brl(D.receitas,2)},
+   {label:"Despesas brutas empenhadas",value:D.despesas,max:D.despesas*1.02,color:"var(--red)",text:brl(D.despesas,2),tip:"Despesas: "+brl(D.despesas,2)}
+  ]);
+  function table(){
+    const p=+$("#popBase .seg button[aria-pressed=true], #popBase button[aria-pressed=true]").dataset.p;
+    const pop=p===2022?D.pop2022:D.pop2026;
+    $("#finTable").innerHTML=`<tr><th>Indicador</th><th class="n">Valor</th></tr>
+     <tr><td>Receita por habitante</td><td class="n">${brl(D.receitas/pop,0)}</td></tr>
+     <tr><td>Despesa por habitante</td><td class="n">${brl(D.despesas/pop,0)}</td></tr>
+     <tr><td>Resultado por habitante</td><td class="n neg">${brl((D.receitas-D.despesas)/pop,0).replace("R$ -","− R$ ")}</td></tr>
+     <tr><td>Receitas cobrem as despesas em</td><td class="n">${fmt(D.receitas/D.despesas*100,2)}%</td></tr>
+     <tr><td>Resultado (receitas − despesas)</td><td class="n neg">− ${brl(-saldoFin,2)}</td></tr>`;
+  }
+  $("#popBase").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+    $$("#popBase button").forEach(x=>x.setAttribute("aria-pressed",x===b));table()});
+  table();
+
+  function pib(){
+    const pop=Math.max(1,+$("#pibPop").value||0), v=D.pibPC*pop;
+    $("#pibImp").textContent="R$ "+fmt(v/1e9,2)+" bi";
+    $("#pibText").textContent=`${brl(D.pibPC,2)} × ${fmt(pop)} habitantes`;
+    hbars($("#pibBars"),[
+      {label:"PIB implícito (cálculo)",value:v,max:Math.max(v,59e9)*1.05,color:"var(--blue)",text:"R$ "+fmt(v/1e9,2)+" bi"},
+      {label:"PIB citado na reportagem (\"quase R$ 59 bi\")",value:59e9,max:Math.max(v,59e9)*1.05,color:"var(--teal)",text:"≈ R$ 59 bi"}
+    ]);
+    $$("#pibPreset button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.v===pop));
+  }
+  $("#pibPop").addEventListener("input",pib);
+  $("#pibPreset").addEventListener("click",e=>{const b=e.target.closest("button");if(b){$("#pibPop").value=b.dataset.v;pib()}});
+  pib();
+})();
+
+/* ================== EMPREGO ================== */
+(function(){
+  const opts=D.caged.map((d,i)=>`<option value="${i}">${d[1]}</option>`).join("");
+  $("#mFrom").innerHTML=opts;$("#mTo").innerHTML=opts;$("#mTo").value=D.caged.length-1;
+  let mode="mensal";
+  function draw(){
+    let a=+$("#mFrom").value,b=+$("#mTo").value;
+    if(a>b){[a,b]=[b,a];$("#mFrom").value=a;$("#mTo").value=b}
+    const noDec=$("#noDec").checked;
+    let rows=D.caged.slice(a,b+1).filter(r=>!(noDec&&r[0]==="Dez/25"));
+    let acc=0;
+    const items=rows.map(r=>{acc+=r[2];const v=mode==="acum"?acc:r[2];
+      return {label:r[0],value:v,color:v>=0?"var(--blue)":"var(--red)",
+        tip:`${r[1]}\nSaldo do mês: ${fmt(r[2])}\nAcumulado no período: ${fmt(acc)}`}});
+    barChart($("#empChart"),items,{rot:true,h:340,label:"Saldo mensal de empregos formais no Brasil"});
+    const tot=rows.reduce((s,r)=>s+r[2],0), n=rows.length||1;
+    const best=rows.reduce((m,r)=>r[2]>m[2]?r:m,rows[0]), worst=rows.reduce((m,r)=>r[2]<m[2]?r:m,rows[0]);
+    $("#kpiEmp").innerHTML=[
+      {i:"users",l:"Saldo no período",v:(tot>=0?"+":"")+fmt(tot),s:rows.length+" meses",cls:tot>=0?"pos":"neg"},
+      {i:"wave",l:"Média mensal",v:(tot/n>=0?"+":"")+fmt(tot/n),s:"empregos formais/mês",cls:tot>=0?"pos":"neg"},
+      {i:"up",l:"Melhor mês",v:"+"+fmt(best[2]),s:best[1],cls:"pos"},
+      {i:"down",l:"Pior mês",v:fmt(worst[2]),s:worst[1],cls:worst[2]<0?"neg":""}
+    ].map(kpi).join("");
+    $("#empTable").innerHTML=`<tr><th>Mês</th><th class="n">Saldo</th><th class="n">% do período</th></tr>`+
+      rows.map(r=>`<tr><td>${r[1]}</td><td class="n ${r[2]<0?"neg":""}">${fmt(r[2])}</td><td class="n">${tot?fmt(r[2]/tot*100,1)+"%":"–"}</td></tr>`).join("")+
+      `<tr><th>Total</th><th class="n">${fmt(tot)}</th><th class="n">100%</th></tr>`;
+  }
+  ["mFrom","mTo","noDec"].forEach(id=>$("#"+id).addEventListener("input",draw));
+  $("#empMode").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mode=b.dataset.m;
+    $$("#empMode button").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});
+  draw();
+  const ago=D.caged[D.caged.length-1][2];
+  $("#sorShare").innerHTML=`Em agosto/2026, Sorocaba respondeu por <b>${fmt(D.sorAgo26/ago*100,2)}%</b> do saldo nacional (${fmt(D.sorAgo26)} de ${fmt(ago)}). Participação calculada aqui.`;
+})();
+
+/* ================== ESTRUTURA ECONÔMICA ================== */
+(function(){
+  const P=D.pib,V=D.vab,pl=P[P.length-1],p0=P[0],vl=V[V.length-1],pm=Object.fromEntries(P);
+  $("#kpiEco").innerHTML=[
+    {i:"chart",l:"PIB de Sorocaba",v:"R$ "+fmt(pl[1]/1e9,2)+" bi",s:pl[0]+" · IBGE"},
+    {i:"trend",l:"PIB, "+p0[0]+" → "+pl[0],v:"× "+fmt(pl[1]/p0[1],1),s:"valores correntes (cálculo derivado)",cls:"pos"},
+    {i:"area",l:"VAB da indústria",v:"R$ "+fmt(vl[1]/1e9,2)+" bi",s:vl[0]+" · último ano disponível"},
+    {i:"award",l:"Indústria no PIB",v:fmt(vl[1]/pm[vl[0]]*100,1)+"%",s:vl[0]+" · VAB ÷ PIB (derivado)"}
+  ].map(kpi).join("");
+  lineChart($("#pibChart"),P.map(d=>d[0]),[{name:"PIB",color:"var(--blue)",y:P.map(d=>d[1])}],{yMin:0,h:300,w:560,label:"PIB de Sorocaba"});
+  barChart($("#vabChart"),V.map(d=>({label:String(d[0]),value:d[1],color:"var(--teal)",tip:d[0]+"\nVAB da indústria: "+brl(d[1])})),{h:300,rot:true,label:"VAB da indústria"});
+  const miss=(all,have)=>all.filter(a=>!have.includes(a));
+  const yrs=[];for(let a=2001;a<=2026;a++)yrs.push(a);
+  $("#pibGap").textContent="Sem valor válido para: "+miss(yrs,P.map(d=>d[0])).join(", ")+".";
+  $("#vabGap").textContent="Série de "+V[0][0]+" a "+vl[0]+"; 2022 e 2023 vieram zerados na fonte e foram tratados como ausentes.";
+  const both=V.filter(d=>pm[d[0]]);
+  $("#vabShare").innerHTML=hbarsHTML(both.map(d=>({label:d[0]+" · VAB R$ "+fmt(d[1]/1e9,2)+" bi de PIB R$ "+fmt(pm[d[0]]/1e9,2)+" bi",value:d[1]/pm[d[0]]*100,max:100,color:"var(--blue)",text:fmt(d[1]/pm[d[0]]*100,1)+"%"})));
+})();
+
+/* ================== RAIS ================== */
+(function(){
+  const R=D.rais,L={"Ate 5 serie incompleta":"Até 5ª série incompleta","6 ao 9 ano incompleto":"6º ao 9º ano incompleto","Fundamental completo (5 a 8 serie)":"Fundamental completo (5ª a 8ª série)","Medio incompleto":"Médio incompleto","Medio completo":"Médio completo","Indigena":"Indígena","Fisica":"Física","Multipla":"Múltipla","Nao Defic":"Sem deficiência"};
+  const ORD=["Analfabeto","Ate 5 serie incompleta","Fundamental completo (5 a 8 serie)","6 ao 9 ano incompleto","Fundamental completo","Medio incompleto","Medio completo","Superior incompleto","Superior completo","Mestrado completo","Doutorado completo"];
+  const COL={B:"var(--amber)",C:"var(--blue)"};
+  $("#rSec").innerHTML=Object.keys(R.nomes).map(k=>`<option value="${k}">${k} · ${esc(R.nomes[k])}</option>`).join("");
+  $("#rYear").innerHTML=R.anos.map(a=>`<option>${a}</option>`).join("");$("#rYear").value=R.anos[R.anos.length-1];$("#rSec").value="C";
+  lineChart($("#femChart"),R.anos,Object.keys(R.nomes).map(k=>({name:"Seção "+k,color:COL[k],y:R.anos.map(a=>{const g=(R.d[k][a]||{}).g;return g?Math.round(g[0]/(g[0]+g[1])*1000)/10:null})})),{yMin:0,h:280,label:"Participação feminina por seção CNAE"});
+  $("#femLegend").innerHTML=Object.keys(R.nomes).map(k=>`<span><i style="background:${COL[k]}"></i>${k} · ${esc(R.nomes[k])}</span>`).join("");
+  function dist(el,obj,order,color,unit){
+    const ks=Object.keys(obj||{}).sort((a,b)=>{const ia=order.indexOf(a),ib=order.indexOf(b);return order.length?(ia<0?99:ia)-(ib<0?99:ib):obj[b]-obj[a]});
+    const tot=ks.reduce((s,k)=>s+obj[k],0)||1;
+    el.innerHTML=ks.length?hbarsHTML(ks.map(k=>({label:L[k]||k,value:obj[k],max:tot,color:color,text:fmt(obj[k])+" · "+fmt(obj[k]/tot*100,1)+"%",tip:(L[k]||k)+": "+fmt(obj[k])+" "+unit}))):'<p class="note">Sem dados para esta seção e ano.</p>';
+  }
+  function draw(){
+    const k=$("#rSec").value,a=$("#rYear").value,d=(R.d[k]||{})[a]||{},g=d.g;
+    $("#kpiRais").innerHTML=g?[
+      {i:"users",l:"Vínculos formais",v:fmt(g[0]+g[1]),s:"Seção "+k+" · "+a},
+      {i:"users",l:"Mulheres",v:fmt(g[0]),s:fmt(g[0]/(g[0]+g[1])*100,1)+"% do total",cls:""},
+      {i:"users",l:"Homens",v:fmt(g[1]),s:fmt(g[1]/(g[0]+g[1])*100,1)+"% do total"}
+    ].map(kpi).join(""):'<p class="note">Sem dados para esta seção e ano.</p>';
+    dist($("#rEsc"),d.e,ORD,"var(--blue)","vínculos");dist($("#rRaca"),d.r,["Branca","Parda","Preta","Amarela","Indigena","Não identificado"],"var(--teal)","vínculos");
+    dist($("#rDef"),d.d,[],"var(--amber)","vínculos");dist($("#rPorte"),d.p,["Microempresa (ME)","Empresa de Pequeno Porte (EPP)","Média Empresa","Grande Empresa","Não Informado"],"var(--blue)","estabelecimentos");
+  }
+  $("#rSec").addEventListener("input",draw);$("#rYear").addEventListener("input",draw);draw();
+})();
+
+/* ================== MÉTRICAS NOVAS ================== */
+(function(){
+  const R=D.rais,A=R.anos,z=A[A.length-1],P=Object.fromEntries(D.pib),pct=v=>v==null?"–":fmt(v,1)+"%";
+  const MED=["Medio completo","Superior incompleto","Superior completo","Mestrado completo","Doutorado completo"],S=o=>Object.values(o||{}).reduce((a,b)=>a+b,0);
+  const rm=(k,a)=>{const d=(R.d[k]||{})[a]||{},e=d.e,f=d.d,p=d.p;
+    return {med:e?MED.reduce((s,x)=>s+(e[x]||0),0)/S(e)*100:null,pcd:f?(S(f)-(f["Nao Defic"]||0))/S(f)*100:null,me:p?(p["Microempresa (ME)"]||0)/S(p)*100:null}};
+  const mk=c=>kpi(c).replace('class="card kpi','class="card mx kpi');
+  const gr=[];D.pib.forEach((d,i)=>{const q=D.pib[i-1];if(q&&d[0]-q[0]===1)gr.push([d[0],(d[1]-q[1])/q[1]*100])});
+  const g0=gr[gr.length-1],v0=D.vab[D.vab.length-1],m0=rm("C",z),sg=g0[1]>=0?"+":"";
+  $("#kpiMetricas").innerHTML=[
+    {i:"trend",l:"Crescimento anual do PIB",v:sg+fmt(g0[1],1)+"%",s:g0[0]+" vs "+(g0[0]-1)+" · valores correntes",cls:g0[1]>=0?"pos":"neg",go:"economia",tip:"(PIB "+g0[0]+" − PIB "+(g0[0]-1)+") ÷ PIB "+(g0[0]-1)+" × 100"},
+    {i:"area",l:"VAB industrial no PIB",v:pct(v0[1]/P[v0[0]]*100),s:v0[0]+" · último ano com VAB",go:"economia",tip:"VAB (R$ mil) × 1.000 ÷ PIB × 100"},
+    {i:"cap",l:"Médio completo ou superior",v:pct(m0.med),s:"Seção C · "+z+" · % dos vínculos",go:"rais"},
+    {i:"heart",l:"Pessoas com deficiência",v:pct(m0.pcd),s:"Seção C · "+z+" · % dos vínculos",go:"rais"},
+    {i:"users",l:"Microempresas (ME)",v:pct(m0.me),s:"Seção C · "+z+" · % dos estabelecimentos",go:"rais"}].map(kpi).join("");
+  $("#kpiEco").insertAdjacentHTML("beforeend",kpi({i:"trend",l:"Crescimento do PIB",v:sg+fmt(g0[1],1)+"%",s:g0[0]+" vs "+(g0[0]-1)+" (derivado)",cls:g0[1]>=0?"pos":"neg"}));
+  barChart($("#pibGrowth"),gr.map(d=>({label:String(d[0]),value:d[1],color:d[1]>=0?"var(--blue)":"var(--red)",tip:d[0]+"\nCrescimento do PIB: "+fmt(d[1],1)+"%\nPIB: "+brl(P[d[0]])})),{h:280,rot:true,label:"Crescimento anual do PIB (%)"});
+  $("#pibGrowthTab").innerHTML='<tr><th>Ano</th><th class="n">PIB (R$ bi)</th><th class="n">Crescimento</th></tr>'+gr.slice().reverse().map(d=>`<tr><td>${d[0]}</td><td class="n">${fmt(P[d[0]]/1e9,2)}</td><td class="n ${d[1]<0?"neg":"pos"}">${fmt(d[1],1)}%</td></tr>`).join("");
+  const upd=()=>{const k=$("#rSec").value,m=rm(k,$("#rYear").value),a=$("#rYear").value;
+    $$("#kpiRais .mx").forEach(n=>n.remove());
+    $("#kpiRais").insertAdjacentHTML("beforeend",[
+      {i:"cap",l:"Médio completo ou superior",v:pct(m.med),s:m.med==null?"sem dado na base":"% dos vínculos · "+k+" · "+a},
+      {i:"heart",l:"Pessoas com deficiência",v:pct(m.pcd),s:m.pcd==null?"sem dado na base":"% dos vínculos (inclui reabilitados)"},
+      {i:"users",l:"Microempresas (ME)",v:pct(m.me),s:m.me==null?"sem dado na base":"% dos estabelecimentos"}].map(mk).join(""));
+    [["mxMed","med","var(--blue)"],["mxPcd","pcd","var(--amber)"],["mxMe","me","var(--teal)"]].forEach(([id,f,c])=>{
+      const ys=A.map(y=>rm(k,y)[f]);
+      if(ys.every(v=>v==null))$("#"+id).innerHTML='<p class="note">Sem dados para esta seção.</p>';
+      else lineChart($("#"+id),A,[{name:"Seção "+k,color:c,y:ys}],{yMin:0,h:220,w:520,dec:1,label:id});});};
+  $("#rSec").addEventListener("input",upd);$("#rYear").addEventListener("input",upd);upd();
+})();
+
+/* ================== INDÚSTRIA 4.0 ================== */
+(function(){
+  const Z=D.seg,B=D.abdi,pc=v=>fmt(v*100,1)+"%",SH={"20":"Químicos","22":"Borracha e plástico","24":"Metalurgia","25":"Produtos de metal","28":"Máquinas e equip.","29":"Veículos automotores"};
+  const sh=n=>n==="Total"?"Total transformação":SH[n.slice(0,2)]||n,CL=["var(--muted)","var(--blue)","var(--teal)","var(--amber)","var(--green)","var(--red)","#8b5cf6"];
+  const prod=(n,i)=>Z.vbp[n][i]*1000/Z.po[n][i];let met="prod";
+  $("#sgYear").innerHTML=Z.anos.map(a=>`<option>${a}</option>`).join("");$("#sgYear").value=Z.anos[Z.anos.length-1];
+  const val=(n,i)=>met==="prod"?prod(n,i):met==="po"?Z.po[n][i]:Z.vbp[n][i]*1000,txt=v=>met==="prod"?brl(v):met==="po"?fmt(v)+" pessoas":"R$ "+fmt(v/1e9,1)+" bi";
+  function draw(){
+    const i=Z.anos.indexOf(+$("#sgYear").value),ds=Z.divs.slice(1),mx=Math.max(...ds.map(n=>val(n,i)))*1.05;
+    hbars($("#sgBars"),ds.map((n,j)=>({label:sh(n),value:val(n,i),max:mx,color:CL[j+1],text:txt(val(n,i)),tip:sh(n)+": "+txt(val(n,i))+"\nTotal da transformação: "+txt(val("Total",i))})));
+    $("#sgTab").innerHTML='<tr><th>Divisão CNAE</th><th class="n">Pessoal ocupado</th><th class="n">% do emprego</th><th class="n">VBP (R$ bi)</th><th class="n">% do VBP</th><th class="n">Produtividade (R$/pessoa)</th></tr>'+Z.divs.map(n=>`<tr><td>${esc(n==="Total"?"Total (indústria de transformação)":n)}</td><td class="n">${fmt(Z.po[n][i])}</td><td class="n">${fmt(Z.po[n][i]/Z.po.Total[i]*100,1)}%</td><td class="n">${fmt(Z.vbp[n][i]/1e6,1)}</td><td class="n">${fmt(Z.vbp[n][i]/Z.vbp.Total[i]*100,1)}%</td><td class="n">${brl(prod(n,i))}</td></tr>`).join("");}
+  $("#sgYear").addEventListener("input",draw);
+  $("#sgMet").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;met=b.dataset.m;$$("#sgMet button").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});draw();
+  lineChart($("#sgLine"),Z.anos,Z.divs.map((n,j)=>({name:sh(n),color:CL[j],dash:j===0,y:Z.anos.map((a,i)=>prod(n,i))})),{yMin:0,h:300,label:"Produtividade por operário por segmento"});
+  $("#sgLeg").innerHTML=Z.divs.map((n,j)=>`<span><i style="background:${CL[j]}"></i>${esc(sh(n))}</span>`).join("");
+  const bp=B.bp,av=a=>a.reduce((s,x)=>s+x,0)/a.length,top=bp.reduce((m,b)=>b[3]>m[3]?b:m),low=bp.reduce((m,b)=>b[3]<m[3]?b:m);
+  $("#abKpi").innerHTML=[{i:"chart",l:"Média das 25 práticas implementadas",v:pc(av(bp.map(b=>b[3]))),s:"média simples · MPEs do Brasil"},
+    {i:"up",l:"Prática mais adotada",v:pc(top[3]),s:top[0]+" · "+top[2]},{i:"down",l:"Prática menos adotada",v:pc(low[3]),s:low[0]+" · "+low[2]},
+    {i:"wave",l:"Banda larga implementada",v:pc(B.tec[0][1]),s:"nuvem: "+pc(B.tec[1][1])+" · cibersegurança: "+pc(B.tec[3][1])}].map(kpi).join("");
+  const two=(l,i,p,max,c)=>({label:l,value:i,max:max,color:c,text:pc(i)+(p!=null?" · parcial "+pc(p):""),tip:l+": "+pc(i)});
+  const objs=[...new Set(bp.map(b=>b[1]))];
+  $("#abObj").innerHTML=hbarsHTML(objs.map(o=>{const q=bp.filter(b=>b[1]===o);return two(o,av(q.map(b=>b[3])),av(q.map(b=>b[4])),.6,"var(--blue)")}));
+  $("#abTec").innerHTML=hbarsHTML(B.tec.map(t=>two(t[0],t[1],t[2],1,"var(--teal)")));
+  $("#abFmt").innerHTML=hbarsHTML(B.fmt.map(t=>({label:t[0],value:t[1],max:1,color:"var(--amber)",text:pc(t[1])+" · nunca usou "+pc(t[2]),tip:t[0]})));
+  $("#abDif").innerHTML=hbarsHTML(B.dif.map(t=>({label:t[0],value:t[1],max:.5,color:"var(--red)",text:pc(t[1]),tip:t[0]})));
+  $("#abBP").innerHTML=hbarsHTML(bp.slice().sort((a,b)=>b[3]-a[3]).map(b=>two(b[0]+" · "+b[2],b[3],b[4],.6,"var(--blue)")));
+})();
+
+/* ================== EIXOS ================== */
+$("#axesGrid").innerHTML=AXES.map(a=>`<div class="card axis"><h3>${a.t}</h3><ul>${a.items.map(i=>`<li class="${i[0]}">${i[1]} <span class="st">${i[0]==="ok"?"— disponível":"— a buscar"}</span></li>`).join("")}</ul></div>`).join("");
+
+/* ================== FONTES ================== */
+(function(){
+  const cats=["Todas",...new Set(SOURCES.map(s=>s[0]))];
+  let cat="Todas";
+  $("#srcChips").innerHTML=cats.map(c=>`<button class="chip" type="button" data-c="${c}" aria-pressed="${c==="Todas"}">${c}</button>`).join("");
+  function draw(){
+    const q=$("#srcQ").value.trim().toLowerCase();
+    const list=SOURCES.filter(s=>(cat==="Todas"||s[0]===cat)&&(!q||(s[1]+" "+s[2]+" "+s[3]).toLowerCase().includes(q)));
+    $("#srcCount").textContent=list.length+" de "+SOURCES.length+" fontes";
+    $("#srcList").innerHTML=list.map(s=>`<div class="src"><a href="${esc(s[2])}" target="_blank" rel="noopener noreferrer">${esc(s[1])}</a>
+      <div class="m"><span class="tag">${esc(s[0])}</span> ${esc(s[3])}</div></div>`).join("")||`<p class="m">Nenhuma fonte encontrada.</p>`;
+  }
+  $("#srcChips").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;cat=b.dataset.c;
+    $$("#srcChips .chip").forEach(x=>x.setAttribute("aria-pressed",x===b));draw()});
+  $("#srcQ").addEventListener("input",draw);draw();
+})();
+
+/* ================== PROJEÇÕES ================== */
+(function(){
+  const T=[12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.16,2.145,2.131,2.12,2.11,2.101,2.093,2.086,2.08,2.074,2.069,2.064,2.06,2.056,2.052,2.048,2.045,2.042];
+  const FIM=2030,R=D.rais,A=R.anos;
+  const sum=(k,a)=>{const g=(R.d[k]||{})[a];return g&&g.g?g.g[0]+g.g[1]:null};
+  const vin=k=>A.map(a=>[a,sum(k,a)]).filter(p=>p[1]!=null);
+  const S={
+    pib:{n:"PIB",p:D.pib,u:"brl",ini:2010,m:"exp"},
+    vab:{n:"VAB da indústria",p:D.vab,u:"brl",ini:2006,m:"exp"},
+    vc:{n:"Vínculos · Seção C (transformação)",p:vin("C"),u:"n",ini:2016,m:"exp"},
+    vt:{n:"Vínculos · B + C",p:A.map(a=>[a,["B","C"].reduce((s,k)=>s+(sum(k,a)||0),0)]),u:"n",ini:2016,m:"exp"},
+    fc:{n:"Participação feminina · Seção C (%)",p:A.map(a=>{const g=R.d.C[a].g;return [a,g[0]/(g[0]+g[1])*100]}),u:"pct",ini:2016,m:"lin"}
+  };
+  function fit(p,ini,exp){
+    const q=p.filter(d=>d[0]>=ini),n=q.length,xs=q.map(d=>d[0]),ys=q.map(d=>exp?Math.log(d[1]):d[1]);
+    const mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;
+    let sxx=0,sxy=0,syy=0;xs.forEach((x,i)=>{sxx+=(x-mx)**2;sxy+=(x-mx)*(ys[i]-my);syy+=(ys[i]-my)**2});
+    const b=sxy/sxx,a=my-b*mx;let sse=0;xs.forEach((x,i)=>{sse+=(ys[i]-a-b*x)**2});
+    const s2=sse/(n-2),tc=T[n-3]||1.96,f=exp?Math.exp:(v=>v);
+    return {n,b,r2:1-sse/syy,at:y=>{const m=a+b*y,sd=Math.sqrt(s2*(1+1/n+(y-mx)**2/sxx));return [f(m),f(m-tc*sd),f(m+tc*sd)]}};
+  }
+  const F=(u,v)=>u==="brl"?"R$ "+fmt(v/1e9,2)+" bi":u==="pct"?fmt(v,1)+"%":fmt(v);
+  const keys=["pib","vab","vc","vt"];
+  $("#pjMet").innerHTML=`<tr><th>Série</th><th>Período</th><th class="n">Último valor</th><th class="n">Var. último ano</th><th class="n">Média anual (CAGR)</th><th class="n">R² lin. / exp.</th><th class="n">2030 linear</th><th class="n">2030 exponencial</th></tr>`+keys.map(k=>{
+    const s=S[k],p=s.p,a=p[0],z=p[p.length-1],pv=p[p.length-2],l=fit(p,s.ini,0),e=fit(p,s.ini,1),v=z[1]/pv[1]-1;
+    return `<tr><td>${s.n}</td><td>${a[0]}–${z[0]}</td><td class="n">${F(s.u,z[1])}</td><td class="n ${v<0?"neg":"pos"}">${fmt(v*100,1)}%</td><td class="n">${fmt(((z[1]/a[1])**(1/(z[0]-a[0]))-1)*100,1)}% a.a.</td><td class="n">${fmt(l.r2,2)} / ${fmt(e.r2,2)}</td><td class="n">${F(s.u,l.at(FIM)[0])}</td><td class="n">${F(s.u,e.at(FIM)[0])}</td></tr>`}).join("");
+  const sel=$("#pjSerie"),st=$("#pjIni");let mod="exp";
+  sel.innerHTML=Object.keys(S).map(k=>`<option value="${k}">${esc(S[k].n)}</option>`).join("");
+  const setSeg=()=>$$("#pjMod button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.m===mod));
+  function opts(){const s=S[sel.value];st.innerHTML=s.p.slice(0,s.p.length-4).map(d=>`<option>${d[0]}</option>`).join("");st.value=s.ini}
+  function draw(){
+    const s=S[sel.value],u=s.u,m=fit(s.p,+st.value,mod==="exp"),L=s.p[s.p.length-1],xs=[];
+    for(let y=s.p[0][0];y<=FIM;y++)xs.push(y);
+    const pj=i=>xs.map(y=>y<L[0]?null:y===L[0]?L[1]:m.at(y)[i]);
+    lineChart($("#pjChart"),xs,[
+      {name:"Observado",color:"var(--blue)",y:xs.map(y=>{const d=s.p.find(q=>q[0]===y);return d?d[1]:null})},
+      {name:"Projeção",color:"var(--amber)",dash:1,y:pj(0)},
+      {name:"IC 95% inferior",color:"var(--muted)",dash:1,y:pj(1)},
+      {name:"IC 95% superior",color:"var(--muted)",dash:1,y:pj(2)}
+    ],{yMin:u==="brl"?0:null,h:300,label:"Regressão e projeção: "+s.n});
+    $("#pjLeg").innerHTML=`<span><i style="background:var(--blue)"></i>Observado</span><span><i style="background:var(--amber)"></i>Projeção (${mod==="exp"?"exponencial":"linear"})</span><span><i style="background:var(--muted)"></i>Intervalo de previsão de 95%</span>`;
+    const e30=m.at(FIM),rate=mod==="exp"?"+"+fmt((Math.exp(m.b)-1)*100,1)+"% a.a.":(m.b>=0?"+":"")+(u==="brl"?F(u,m.b):u==="pct"?fmt(m.b,2)+" p.p.":fmt(m.b))+"/ano";
+    $("#pjKpi").innerHTML=[
+      {l:"Último dado",v:F(u,L[1]),s:s.n+" · "+L[0]},
+      {l:"Tendência estimada",v:rate,s:"janela "+st.value+"–"+L[0]+" · "+m.n+" pontos"},
+      {l:"Ajuste (R²)",v:fmt(m.r2,2),s:"quanto da variação o modelo explica"},
+      {l:"Projeção para 2030",v:F(u,e30[0]),s:"IC 95%: "+F(u,e30[1])+" a "+F(u,e30[2]),cls:"pos"}
+    ].map(kpi).join("");
+    let prev=L[1];
+    $("#pjTab").innerHTML=`<tr><th>Ano</th><th class="n">Projeção</th><th class="n">Inferior (95%)</th><th class="n">Superior (95%)</th><th class="n">Var. anual</th></tr>`+
+      xs.filter(y=>y>L[0]).map(y=>{const r=m.at(y),v=r[0]/prev-1;prev=r[0];return `<tr><td>${y}</td><td class="n">${F(u,r[0])}</td><td class="n">${F(u,r[1])}</td><td class="n">${F(u,r[2])}</td><td class="n">${fmt(v*100,1)}%</td></tr>`}).join("");
+  }
+  sel.addEventListener("input",()=>{mod=S[sel.value].m;setSeg();opts();draw()});
+  st.addEventListener("input",draw);
+  $("#pjMod").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;mod=b.dataset.m;setSeg();draw()});
+  setSeg();opts();draw();
+  const vc=Object.fromEntries(S.vc.p);
+  $("#pjProd").innerHTML=`<tr><th>Ano</th><th class="n">VAB da indústria</th><th class="n">Vínculos (Seção C)</th><th class="n">VAB por vínculo</th></tr>`+
+    D.vab.filter(d=>vc[d[0]]).map(d=>`<tr><td>${d[0]}</td><td class="n">${F("brl",d[1])}</td><td class="n">${fmt(vc[d[0]])}</td><td class="n">R$ ${fmt(d[1]/vc[d[0]]/1000,1)} mil</td></tr>`).join("");
+})();
+
+/* ================== PLANO DE AÇÃO ================== */
+(function(){
+  const R=D.rais,A=R.anos,a0=A[0],z=A[A.length-1],P=Object.fromEntries(D.pib),S=o=>Object.values(o||{}).reduce((s,x)=>s+x,0),pc=(v,d=1)=>fmt(v,d)+"%";
+  const MED=["Medio completo","Superior incompleto","Superior completo","Mestrado completo","Doutorado completo"],SUP=["Superior completo","Mestrado completo","Doutorado completo"];
+  const m=y=>{const d=R.d.C[y],t=d.g[0]+d.g[1];return {t,f:d.g[0]/t*100,med:MED.reduce((s,x)=>s+(d.e[x]||0),0)/S(d.e)*100,sup:SUP.reduce((s,x)=>s+(d.e[x]||0),0)/S(d.e)*100,pcd:(S(d.d)-(d.d["Nao Defic"]||0))/S(d.d)*100,me:d.p["Microempresa (ME)"]/S(d.p)*100,pp:(d.r.Parda+d.r.Preta)/t*100,est:S(d.p),gr:d.p["Grande Empresa"],md:d.p["Média Empresa"],mi:d.p["Microempresa (ME)"]}};
+  const m0=m(a0),m1=m(z),ls=(p,ini,ex)=>{const q=p.filter(d=>d[0]>=ini),n=q.length,xs=q.map(d=>d[0]),ys=q.map(d=>ex?Math.log(d[1]):d[1]),mx=xs.reduce((s,x)=>s+x)/n,my=ys.reduce((s,x)=>s+x)/n;let sxx=0,sxy=0;xs.forEach((x,i)=>{sxx+=(x-mx)**2;sxy+=(x-mx)*(ys[i]-my)});const k=sxy/sxx,v=my+k*(2030-mx);return ex?Math.exp(v):v};
+  const lin=ls(D.pib,2010,0),exp=ls(D.pib,2010,1),g23=(P[2023]/P[2022]-1)*100,cg=((P[2023]/P[2010])**(1/13)-1)*100;
+  const V0=D.vab[0],V1=D.vab[D.vab.length-1],s0=V0[1]/P[V0[0]]*100,s1=V1[1]/P[V1[0]]*100,sf=D.receitas-D.despesas,cp=((D.pop2026/D.pop2022)**.25-1)*100;
+  const B=D.abdi,avg=B.bp.reduce((s,x)=>s+x[3],0)/B.bp.length*100,parc=B.bp.find(x=>x[0]==="BP21")[3]*100,nuv=B.tec[1][1]*100,cib=B.tec[3][1]*100,dif=B.dif[0][1]*100;
+  const Z=D.seg,i=Z.anos.length-1,pr=n=>Z.vbp[n][i]*1000/Z.po[n][i],mt=Z.divs.find(n=>n.slice(0,2)==="25");
+  $("#kpiPlano").innerHTML=[
+    {i:"money",l:"PIB de Sorocaba",v:"R$ "+fmt(P[2023]/1e9,1)+" bi",s:"2023 · +"+fmt(g23,1)+"% vs 2022 · valores correntes",cls:"pos",go:"economia"},
+    {i:"area",l:"Peso do VAB industrial no PIB",v:pc(s1),s:V1[0]+" · era "+pc(s0)+" em "+V0[0],go:"economia"},
+    {i:"users",l:"Vínculos na indústria de transformação",v:fmt(m1.t),s:z+" · "+pc((m1.t/m0.t-1)*100)+" vs "+a0,go:"rais"},
+    {i:"chart",l:"PIB em 2030 (faixa)",v:fmt(lin/1e9,0)+" a "+fmt(exp/1e9,0)+" bi",s:"linear a exponencial · tendência, não previsão",go:"projecoes"},
+    {i:"down",l:"Resultado fiscal 2025",v:"− R$ "+fmt(-sf/1e6,1)+" mi",s:pc(-sf/D.receitas*100)+" da receita · déficit",cls:"neg",go:"financas"},
+    {i:"wave",l:"Maturidade digital das MPEs",v:pc(avg),s:"média das 25 práticas · Brasil",go:"ind40"}].map(kpi).join("");
+  $("#planoMsg").textContent="A agenda de 2026 a 2030 tem três frentes: ganhar produtividade e digitalizar as MPEs industriais, ampliar a inclusão na força de trabalho e dar previsibilidade territorial e regulatória, com instrumentos de baixo custo fiscal e acompanhamento conjunto entre empresas e poder público.";
+  $("#planoLeitura").innerHTML=[
+    `<b>Economia em expansão nominal.</b> PIB de R$ ${fmt(P[2023]/1e9,1)} bi em 2023 (+${fmt(g23,1)}% sobre 2022) e média de ${fmt(cg,1)}% a.a. desde 2010, em valores correntes, sem descontar a inflação.`,
+    `<b>Indústria perde peso, mas sustenta o emprego formal.</b> O VAB industrial passou de ${pc(s0)} do PIB (${V0[0]}) para ${pc(s1)} (${V1[0]}); a transformação tem ${fmt(m1.t)} vínculos em ${z}, ${pc((m1.t/m0.t-1)*100)} a mais que em ${a0}.`,
+    `<b>Mão de obra mais qualificada, com inclusão ainda baixa.</b> ${pc(m1.med)} dos vínculos têm médio completo ou mais (${pc(m0.med)} em ${a0}) e ${pc(m1.sup)} têm superior completo ou mais. Mulheres são ${pc(m1.f)}, PcD ${pc(m1.pcd)} e pretos e pardos ${pc(m1.pp)} (${pc(m0.pp)} em ${a0}; parte do salto vem da queda dos "não identificado").`,
+    `<b>Base empresarial pulverizada e pouco digital.</b> ${pc(m1.me)} dos ${fmt(m1.est)} estabelecimentos industriais são microempresas. Nas MPEs do Brasil, a média é de ${pc(avg)} das 25 práticas digitais implementadas.`,
+    `<b>Pouca folga fiscal e território sob pressão.</b> Em 2025 a despesa empenhada superou a receita realizada em R$ ${fmt(-sf/1e6,1)} mi, e a população cresce ${fmt(cp,1)}% a.a. (2022 a 2026). O IDHM de 0,798 (2010) está a 0,002 da faixa "Muito alto".`].map(t=>`<li>${t}</li>`).join("");
+  const tb=(el,rows)=>$(el).innerHTML='<tr><th>Ação</th><th>Prazo</th><th>Indicador · linha de base</th></tr>'+rows.map(r=>`<tr><td><b>${r[0]}</b><br><span style="color:var(--muted)">${r[1]}</span></td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("");
+  tb("#planoProd",[
+    ["Digitalizar as MPEs industriais","Aplicar em Sorocaba o diagnóstico de maturidade digital (ABDI/FGV) e lançar piloto de nuvem, cibersegurança e backup com a rede de fornecedores das grandes empresas.","0–6 m diagnóstico; 6–18 m piloto",`Nuvem ${pc(nuv)} e cibersegurança ${pc(cib)} nas MPEs (Brasil); barreira nº 1: falta de recursos (${pc(dif,0)})`],
+    ["Elevar a produtividade nos segmentos defasados","Definir metas por divisão CNAE com benchmark nacional, começando por produtos de metal.","6–18 m",`Produtos de metal: R$ ${fmt(pr(mt)/1e3,0)} mil por pessoa ocupada, contra R$ ${fmt(pr("Total")/1e3,0)} mil na transformação (Brasil, ${Z.anos[i]})`],
+    ["Desenvolver fornecedores locais",`Conectar as ${m1.gr} grandes e ${m1.md} médias empresas industriais às ${fmt(m1.mi)} microempresas, usando parcerias para inovar, prática mais adotada pelas MPEs (${pc(parc)}).`,"6–18 m","Nº de MPEs fornecedoras em programa (a levantar)"],
+    ["Qualificar e diversificar a força de trabalho","Trilhas técnicas em automação e dados com o ensino técnico e metas de contratação de mulheres, PcD, pretos e pardos.","0–6 m metas; execução até 2030",`Mulheres ${pc(m1.f)} (${pc(m0.f)} em ${a0}); PcD ${pc(m1.pcd)}; superior completo ou mais ${pc(m1.sup)}`]]);
+  tb("#planoPub",[
+    ["Destravar licenciamento e ambiente de negócios","Simplificar alvarás e licenças para expansão industrial e MPEs, com prazos públicos de resposta.","0–6 m","Tempo médio de licenciamento (a levantar na prefeitura)"],
+    ["Revisar o zoneamento urbano-industrial",`Mapear conflitos no Plano Diretor e reservar áreas industriais e logísticas, diante do crescimento populacional de ${fmt(cp,1)}% a.a.`,"6–18 m",`Mapa de conflitos concluído; ${fmt(D.pop2026)} habitantes (est. 2026); ${fmt(D.dens,0)} hab/km²`],
+    ["Alinhar educação técnica e intermediação de emprego","Usar CAGED municipal e RAIS para ajustar vagas de cursos técnicos e superiores à demanda da indústria, com prioridade a mulheres e PcD.","6–18 m",`Saldo de Sorocaba em ago/2026: +${fmt(D.sorAgo26)}; médio completo ou mais: ${pc(m1.med)}`],
+    ["Priorizar instrumentos de baixo custo fiscal","Com a despesa acima da receita, privilegiar articulação, desburocratização, compras públicas acessíveis às MPEs e captação de recursos externos, em vez de renúncia fiscal ampla.","Contínuo",`Resultado 2025: − R$ ${fmt(-sf/1e6,1)} mi (${pc(-sf/D.receitas*100)} da receita)`]]);
+  tb("#planoConj",[
+    ["Comitê público-privado de acompanhamento","Reunião trimestral com prefeitura, entidades de classe, sindicatos e universidades, usando este painel como base única.","0–6 m","Calendário de reuniões; painel atualizado a cada divulgação de RAIS, CAGED e PIB municipal"],
+    ["Fechar as lacunas de dados","Refazer a extração de salários da RAIS e obter PIB de 2024 em diante, VAB de serviços e comércio, correção pelo IPCA e CNAE local.","0–6 m","Itens marcados como \"a buscar\" na aba Eixos"],
+    ["Planejar com cenários, não com ponto único","Adotar a faixa do PIB de 2030 (linear a exponencial) e revisá-la todo ano.","Anual",`PIB 2030: R$ ${fmt(lin/1e9,1)} bi (linear) a R$ ${fmt(exp/1e9,1)} bi (exponencial)`]]);
+})();
+
+/* hash inicial */
+const h=location.hash.slice(1);if(h&&$("#"+h)&&$("#tabs [data-tab="+h+"]"))show(h);
+})();
+</script>
+</body>
+</html>
